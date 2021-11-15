@@ -51,9 +51,8 @@ std::ostream& operator<<(std::ostream& ostr, const list<T>& list)
 int main()
 {
 	MyList b = { 1, 2, 2, 3, 3, 2, 1, 1, 2 };
-	MyList<string> a;
 
-	list d = { 1, 2, 2, 3, 3, 2, 1, 1, 2 };
+	b.sort();
 
 	cout << b;
 

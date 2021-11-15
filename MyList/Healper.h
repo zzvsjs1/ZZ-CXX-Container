@@ -64,7 +64,7 @@ fancyPointerToAddress(const Ptr& ptr)
  
 template <typename Alloc>
 constexpr inline void
-do_alloc_swap(Alloc& left, Alloc& right)
+doAllocSwap(Alloc& left, Alloc& right)
 {
 	using traits = STD allocator_traits<Alloc>;
 	using pocs = typename traits::propagate_on_container_swap;
@@ -78,7 +78,7 @@ do_alloc_swap(Alloc& left, Alloc& right)
 
 template <typename Alloc>
 constexpr inline void
-do_alloc_copy(Alloc& left, Alloc& right)
+doAllocCopy(Alloc& left, Alloc& right)
 {
 	using traits = STD allocator_traits<Alloc>;
 	using pocca = typename traits::propagate_on_container_copy_assignment;
@@ -91,7 +91,7 @@ do_alloc_copy(Alloc& left, Alloc& right)
 
 template <typename Alloc>
 constexpr inline void
-do_alloc_move(Alloc& left, Alloc& right)
+doAllocMove(Alloc& left, Alloc& right)
 {
 	using traits = STD allocator_traits<Alloc>;
 	using pocma = typename traits::propagate_on_container_move_assignment;
@@ -145,17 +145,17 @@ struct MyAlloctTraits : public STD allocator_traits<Alloc>
 
 	static constexpr void doCopy(Alloc& left, Alloc& right)
 	{
-		do_alloc_copy(left, right);
+		doAllocCopy(left, right);
 	}
 
 	static constexpr void doSwap(Alloc& left, Alloc& right)
 	{
-		do_alloc_swap(left, right);
+		doAllocSwap(left, right);
 	}
 
 	static constexpr void doMove(Alloc& left, Alloc& right)
 	{
-		do_alloc_move(left, right);
+		doAllocMove(left, right);
 	}
 
 	static constexpr bool propagate_on_container_copy_assignment_v()

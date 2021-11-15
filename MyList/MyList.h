@@ -3,6 +3,7 @@
 #define MYLIST
 
 #include <algorithm>
+#include <array>
 #include <cassert>
 #include <memory>
 #include <cassert>
@@ -30,17 +31,17 @@ class ListNodeBase
 
 public:
 
-	ListNodeBase* m_prev;
+	ListNodeBase* mPrev;
 
-	ListNodeBase* m_next;
+	ListNodeBase* mNext;
 
 	static void swapNodeBase(ListNodeBase& left, ListNodeBase& right) noexcept
 	{
 		// If left is not empty.
-		if (left.m_next != STD addressof(left))
+		if (left.mNext != STD addressof(left))
 		{
 			// Both are not empty.
-			if (right.m_next != STD addressof(right))
+			if (right.mNext != STD addressof(right))
 			{
 				swapWhenBothAreNonEmpty(left, right);
 			}
@@ -51,7 +52,7 @@ public:
 			}
 		}
 		// If right is not empty.
-		else if (right.m_next != STD addressof(right))
+		else if (right.mNext != STD addressof(right))
 		{
 			swapWhenOnceIsEmpty(left, right);
 		}
@@ -61,34 +62,34 @@ private:
 
 	static void swapWhenBothAreNonEmpty(ListNodeBase& left, ListNodeBase& right) noexcept
 	{
-		STD swap(left.m_next, right.m_next);
-		STD swap(left.m_prev, right.m_prev);
+		STD swap(left.mNext, right.mNext);
+		STD swap(left.mPrev, right.mPrev);
 
 		auto* const leftAddress = STD addressof(left);
 
-		left.m_next->m_prev = leftAddress;
-		left.m_prev->m_next = leftAddress;
+		left.mNext->mPrev = leftAddress;
+		left.mPrev->mNext = leftAddress;
 
 		auto* const rightAddress = STD addressof(right);
 
-		right.m_next->m_prev = rightAddress;
-		right.m_prev->m_next = rightAddress;
+		right.mNext->mPrev = rightAddress;
+		right.mPrev->mNext = rightAddress;
 	}
 
 	static void swapWhenOnceIsEmpty(ListNodeBase& empty, ListNodeBase& nonEmpty) noexcept
 	{
-		empty.m_next = nonEmpty.m_next;
-		empty.m_prev = nonEmpty.m_prev;
+		empty.mNext = nonEmpty.mNext;
+		empty.mPrev = nonEmpty.mPrev;
 
 		auto* const emptyAddress = STD addressof(empty);
 
-		empty.m_prev->m_next = emptyAddress;
-		empty.m_next->m_prev = emptyAddress;
+		empty.mPrev->mNext = emptyAddress;
+		empty.mNext->mPrev = emptyAddress;
 
 		auto* const nonEmptyAddress = STD addressof(nonEmpty);
 
-		nonEmpty.m_prev = nonEmptyAddress;
-		nonEmpty.m_next = nonEmptyAddress;
+		nonEmpty.mPrev = nonEmptyAddress;
+		nonEmpty.mNext = nonEmptyAddress;
 	}
 
 public:
@@ -101,30 +102,30 @@ public:
 		}
 
 		// Remove [first, last) from its old position.
-		first->m_prev->m_next = last;
-		last->m_prev->m_next = this;
-		m_prev->m_next = first;
+		first->mPrev->mNext = last;
+		last->mPrev->mNext = this;
+		mPrev->mNext = first;
 
 		// Splice [first, last) into its new position.
-		ListNodeBase* const thisPrev = m_prev;
-		m_prev = last->m_prev;
-		last->m_prev = first->m_prev;
-		first->m_prev = thisPrev;
+		ListNodeBase* const thisPrev = mPrev;
+		mPrev = last->mPrev;
+		last->mPrev = first->mPrev;
+		first->mPrev = thisPrev;
 	}
 
 	void linkBefore(ListNodeBase* const position) noexcept
 	{
-		m_next = position;
-		m_prev = position->m_prev;
+		mNext = position;
+		mPrev = position->mPrev;
 
-		position->m_prev->m_next = this;
-		position->m_prev = this;
+		position->mPrev->mNext = this;
+		position->mPrev = this;
 	}
 
 	void unlinkMyself() noexcept
 	{
-		m_prev->m_next = m_next;
-		m_next->m_prev = m_prev;
+		mPrev->mNext = mNext;
+		mNext->mPrev = mPrev;
 	}
 };
 
@@ -143,24 +144,24 @@ class ListNodeHeader : public ListNodeBase
 public:
 
 	ListNodeHeader() noexcept
-		: ListNodeBase(), m_size()
+		: ListNodeBase(), mSize()
 	{
 		resetAllMembers();
 	}
 
 	ListNodeHeader(ListNodeHeader&& other) noexcept
-		: ListNodeBase{ other.m_prev, other.m_next }, m_size(other.m_size)
+		: ListNodeBase{ other.mPrev, other.mNext }, mSize(other.mSize)
 	{
 		// If other is empty.
-		if (STD addressof(other) == other.m_next)
+		if (STD addressof(other) == other.mNext)
 		{
-			m_prev = this;
-			m_next = this;
+			mPrev = this;
+			mNext = this;
 		}
 		else
 		{
-			m_prev->m_next = this;
-			m_next->m_prev = this;
+			mPrev->mNext = this;
+			mNext->mPrev = this;
 			other.resetAllMembers();
 		}
 	}
@@ -168,40 +169,40 @@ public:
 	void moveNodes(ListNodeHeader&& other)
 	{
 		// If other is empty.
-		if (other.m_size == 0)
+		if (other.mSize == 0)
 		{
 			resetAllMembers();
 			return;
 		}
 
-		m_next = other.m_next;
-		m_prev = other.m_prev;
+		mNext = other.mNext;
+		mPrev = other.mPrev;
 
-		m_next->m_prev = this;
-		m_prev->m_next = this;
-		m_size = other.m_size;
+		mNext->mPrev = this;
+		mPrev->mNext = this;
+		mSize = other.mSize;
 
 		other.resetAllMembers();
 	}
 
 	void resetAllMembers() noexcept
 	{
-		m_prev = this;
-		m_next = this;
-		m_size = 0;
+		mPrev = this;
+		mNext = this;
+		mSize = 0;
 	}
 
 	void doReverse() noexcept
 	{
-		STD swap(m_next, m_prev);
+		STD swap(mNext, mPrev);
 
-		for (ListNodeBase* temp = m_prev; temp != this; temp = temp->m_prev)
+		for (ListNodeBase* temp = mPrev; temp != this; temp = temp->mPrev)
 		{
-			STD swap(temp->m_next, temp->m_prev);
+			STD swap(temp->mNext, temp->mPrev);
 		}
 	}
 
-	size_t m_size;
+	size_t mSize;
 };
 
 // An actual node in the list.
@@ -215,22 +216,22 @@ public:
 
 	~ListNode() = default;
 
-	T* m_valptr()
+	T* valuePtr()
 	{
 		return &actualData;
 	}
 
-	T const * m_valptr() const
+	T const * valuePtr() const
 	{
 		return &actualData;
 	}
 
-	T& getDataReference()
+	T& valueRef()
 	{
 		return actualData;
 	}
 
-	const T& getDataReference() const
+	const T& valueRef() const
 	{
 		return actualData;
 	}
@@ -256,13 +257,13 @@ public:
 	using reference = T&;
 
 	ListIterator() noexcept
-		: m_node()
+		: mNode()
 	{}
 
 	~ListIterator() = default;
 
 	explicit ListIterator(ListNodeBase* node) noexcept
-		: m_node(node)
+		: mNode(node)
 	{}
 
 	ListIterator constCast() const noexcept
@@ -272,51 +273,51 @@ public:
 
 	reference operator*() const noexcept
 	{
-		return static_cast<Node*>(m_node)->getDataReference();
+		return static_cast<Node*>(mNode)->valueRef();
 	}
 
 	pointer operator->() const noexcept
 	{
-		return static_cast<Node*>(m_node)->m_valptr();
+		return static_cast<Node*>(mNode)->valuePtr();
 	}
 
 	ListIterator& operator++() noexcept
 	{
-		m_node = m_node->m_next;
+		mNode = mNode->mNext;
 		return *this;
 	}
 
 	ListIterator operator++(int) noexcept
 	{
 		ListIterator temp = *this;
-		m_node = m_node->m_next;
+		mNode = mNode->mNext;
 		return temp;
 	}
 
 	ListIterator& operator--() noexcept
 	{
-		m_node = m_node->m_prev;
+		mNode = mNode->mPrev;
 		return *this;
 	}
 
 	ListIterator operator--(int) noexcept
 	{
 		ListIterator temp = *this;
-		m_node = m_node->m_prev;
+		mNode = mNode->mPrev;
 		return temp;
 	}
 
 	friend bool operator==(const ListIterator& left, const ListIterator& right) noexcept
 	{
-		return left.m_node == right.m_node;
+		return left.mNode == right.mNode;
 	}
 
 	friend bool operator!=(const ListIterator& left, const ListIterator& right) noexcept
 	{
-		return left.m_node != right.m_node;
+		return left.mNode != right.mNode;
 	}
 
-	ListNodeBase* m_node;
+	ListNodeBase* mNode;
 
 };
 
@@ -338,69 +339,69 @@ public:
 	using reference = const T&;
 
 	ListConstIterator() noexcept
-		: m_node()
+		: mNode()
 	{}
 
 	explicit ListConstIterator(const ListNodeBase* node) noexcept
-		: m_node(node)
+		: mNode(node)
 	{}
 
 	ListConstIterator(const iterator& other) noexcept
-		: m_node(other.m_node)
+		: mNode(other.mNode)
 	{}
 
 	iterator constCast() const noexcept
 	{
-		return iterator(const_cast<ListNodeBase*>(m_node));
+		return iterator(const_cast<ListNodeBase*>(mNode));
 	}
 
 	reference operator*() const noexcept
 	{
-		return static_cast<Node*>(m_node)->getDataReference();
+		return static_cast<Node*>(mNode)->valueRef();
 	}
 
 	pointer operator->() const noexcept
 	{
-		return static_cast<Node*>(m_node)->m_valptr();
+		return static_cast<Node*>(mNode)->valuePtr();
 	}
 
 	ListConstIterator& operator++() noexcept
 	{
-		m_node = m_node->m_next;
+		mNode = mNode->mNext;
 		return *this;
 	}
 
 	ListConstIterator operator++(int) noexcept
 	{
 		ListConstIterator temp = *this;
-		m_node = m_node->m_next;
+		mNode = mNode->mNext;
 		return temp;
 	}
 
 	ListConstIterator& operator--() noexcept
 	{
-		m_node = m_node->m_prev;
+		mNode = mNode->mPrev;
 		return *this;
 	}
 
 	ListConstIterator operator--(int) noexcept
 	{
 		ListConstIterator temp = *this;
-		m_node = m_node->m_prev;
+		mNode = mNode->mPrev;
 		return temp;
 	}
 
 	friend bool operator==(const ListConstIterator& left, const ListConstIterator& right) noexcept
 	{
-		return left.m_node == right.m_node;
+		return left.mNode == right.mNode;
 	}
 
 	friend bool operator!=(const ListConstIterator& left, const ListConstIterator& right) noexcept
 	{
-		return left.m_node != right.m_node;
+		return left.mNode != right.mNode;
 	}
 
-	const ListNodeBase* m_node;
+	const ListNodeBase* mNode;
 
 };
 
@@ -419,7 +420,7 @@ protected:
 	// The empty base optimization.
 	struct ListImpl : public Node_Alloc_Type
 	{
-		ListNodeHeader m_header;
+		ListNodeHeader mHeader;
 
 		ListImpl() noexcept(STD is_nothrow_default_constructible_v<Node_Alloc_Type>)
 			: Node_Alloc_Type()
@@ -432,7 +433,7 @@ protected:
 		ListImpl(ListImpl&& other) = default;
 
 		ListImpl(Node_Alloc_Type&& otherNode, ListImpl&& otherImpl)
-			: Node_Alloc_Type(STD move(otherNode)), m_header(STD move(otherImpl.m_header))
+			: Node_Alloc_Type(STD move(otherNode)), mHeader(STD move(otherImpl.mHeader))
 		{}
 
 		ListImpl(Node_Alloc_Type&& other) noexcept
@@ -441,32 +442,32 @@ protected:
 
 	};
 
-	ListImpl m_impl;
+	ListImpl mImpl;
 
 	void setSize(const size_t size) noexcept
 	{
-		m_impl.m_header.m_size = size;
+		mImpl.mHeader.mSize = size;
 	}
 
 	void incSize(const size_t n) noexcept
 	{
-		m_impl.m_header.m_size += n;
+		mImpl.mHeader.mSize += n;
 	}
 
 	void decSize(const size_t n) noexcept
 	{
-		m_impl.m_header.m_size -= n;
+		mImpl.mHeader.mSize -= n;
 	}
 
 	typename Node_Alloc_Traits::pointer allocateNode()
 	{
 		// Not good. Similar to return new T; Any good solution?
-		return Node_Alloc_Traits::allocate(m_impl, 1);
+		return Node_Alloc_Traits::allocate(mImpl, 1);
 	}
 
 	void deallocateNode(typename Node_Alloc_Traits::pointer ptr) noexcept
 	{
-		Node_Alloc_Traits::deallocate(m_impl, ptr, 1);
+		Node_Alloc_Traits::deallocate(mImpl, ptr, 1);
 	}
 
 public:
@@ -475,25 +476,25 @@ public:
 
 	Node_Alloc_Type& getNodeAllocator() noexcept
 	{
-		return m_impl;
+		return mImpl;
 	}
 
 	const Node_Alloc_Type& getNodeAllocator() const noexcept
 	{
-		return m_impl;
+		return mImpl;
 	}
 
 	// Constructor start from here.
 	ListBase() = default;
 
 	ListBase(const Node_Alloc_Type& other) noexcept
-		: m_impl(other)
+		: mImpl(other)
 	{}
 
 	ListBase(ListBase&&) = default;
 
 	ListBase(ListBase&& otherBase, Node_Alloc_Type&& otherAllocator)
-		: m_impl(STD move(otherAllocator))
+		: mImpl(STD move(otherAllocator))
 	{
 		if (getNodeAllocator() == otherBase.getNodeAllocator())
 		{
@@ -503,17 +504,17 @@ public:
 
 	// Used when allocator is_always_equal.
 	ListBase(Node_Alloc_Type&& otherAlloc, ListBase&& otherBase)
-		: m_impl(STD move(otherAlloc), STD move(otherBase.m_impl))
+		: mImpl(STD move(otherAlloc), STD move(otherBase.mImpl))
 	{}
 
 	// Used when allocator !is_always_equal.
 	ListBase(Node_Alloc_Type&& nodeAlloc)
-		: m_impl(STD move(nodeAlloc))
+		: mImpl(STD move(nodeAlloc))
 	{}
 
 	void moveNodes(ListBase&& other)
 	{
-		m_impl.m_header.moveNodes(STD move(other.m_impl.m_header));
+		mImpl.mHeader.moveNodes(STD move(other.mImpl.mHeader));
 	}
 
 	~ListBase() noexcept
@@ -530,17 +531,17 @@ public:
 
 	void clearData() noexcept
 	{
-		if (m_impl.m_header.m_size == 0)
+		if (mImpl.mHeader.mSize == 0)
 		{
 			return;
 		}
 
 		using Node = ListNode<T>;
-		for (ListNodeBase* next = m_impl.m_header.m_next; next != &m_impl.m_header;)
+		for (ListNodeBase* next = mImpl.mHeader.mNext; next != &mImpl.mHeader;)
 		{
 			Node* temp = static_cast<Node*>(next);
-			next = next->m_next; // 
-			T* value = temp->m_valptr();
+			next = next->mNext; // 
+			T* value = temp->valuePtr();
 			Node_Alloc_Traits::destroy(getNodeAllocator(), value);
 			deallocateNode(temp);
 		}
@@ -548,7 +549,7 @@ public:
 
 	void resetHearder() noexcept
 	{
-		m_impl.m_header.resetAllMembers();
+		mImpl.mHeader.resetAllMembers();
 	}
 
 };
@@ -578,7 +579,7 @@ private:
 protected:
 
 	// Short name.
-	using Base::m_impl;
+	using Base::mImpl;
 	using Base::allocateNode;
 	using Base::deallocateNode;
 	using Base::getNodeAllocator;
@@ -613,7 +614,7 @@ private:
 		Node* node = allocateNode();
 		auto& alloc = getNodeAllocator(); // Throws
 		AllocatedPtrGuard<Node_Alloc_Type> guard{ alloc, node };
-		Node_Alloc_Traits::construct(alloc, node->m_valptr(), STD forward<Args>(args)...);  // Throws
+		Node_Alloc_Traits::construct(alloc, node->valuePtr(), STD forward<Args>(args)...);  // Throws
 		return guard.release();
 	}
 
@@ -646,7 +647,7 @@ private:
 	void addNodeBefore(iterator position, Args&& ... args)
 	{
 		Node* temp = createNode(STD forward<Args>(args)...);
-		temp->linkBefore(position.m_node);
+		temp->linkBefore(position.mNode);
 		this->incSize(1);
 	}
 
@@ -882,32 +883,32 @@ public:
 
 	[[nodiscard]] iterator begin() noexcept
 	{
-		return iterator(m_impl.m_header.m_next);
+		return iterator(mImpl.mHeader.mNext);
 	}
 
 	[[nodiscard]] const_iterator begin() const noexcept
 	{
-		return const_iterator(m_impl.m_header.m_next);
+		return const_iterator(mImpl.mHeader.mNext);
 	}
 
 	[[nodiscard]] const_iterator cbegin() const noexcept
 	{
-		return const_iterator(m_impl.m_header.m_next);
+		return const_iterator(mImpl.mHeader.mNext);
 	}
 
 	[[nodiscard]] iterator end() noexcept
 	{
-		return iterator(STD addressof(m_impl.m_header));
+		return iterator(STD addressof(mImpl.mHeader));
 	}
 
 	[[nodiscard]] const_iterator end() const noexcept
 	{
-		return const_iterator(STD addressof(m_impl.m_header));
+		return const_iterator(STD addressof(mImpl.mHeader));
 	}
 
 	[[nodiscard]] const_iterator cend() const noexcept
 	{
-		return const_iterator(STD addressof(m_impl.m_header));
+		return const_iterator(STD addressof(mImpl.mHeader));
 	}
 
 	[[nodiscard]] reverse_iterator rbegin() noexcept
@@ -942,12 +943,12 @@ public:
 
 	[[nodiscard]] bool empty() const noexcept
 	{
-		return m_impl.m_header.m_size == 0;
+		return mImpl.mHeader.mSize == 0;
 	}
 
 	[[nodiscard]] size_type size() const noexcept
 	{
-		return m_impl.m_header.m_size;
+		return mImpl.mHeader.mSize;
 	}
 
 	[[nodiscard]] size_type max_size() const noexcept
@@ -1001,7 +1002,7 @@ public:
 	iterator emplace(const_iterator pos, Args&&... args)
 	{
 		Node* temp = createNode(STD forward<Args>(args)...); // Throws
-		temp->linkBefore(pos.constCast().m_node);
+		temp->linkBefore(pos.constCast().mNode);
 		this->incSize(1);
 
 		return iterator(temp);
@@ -1009,12 +1010,12 @@ public:
 
 	iterator erase(const_iterator pos) noexcept
 	{
-		iterator ret = iterator(pos.m_node->m_next);
+		iterator ret = iterator(pos.mNode->mNext);
 
-		Node* needToDelete = static_cast<Node*>(pos.constCast().m_node);
+		Node* needToDelete = static_cast<Node*>(pos.constCast().mNode);
 		needToDelete->unlinkMyself();
 
-		Node_Alloc_Traits::destroy(getNodeAllocator(), needToDelete->m_valptr());
+		Node_Alloc_Traits::destroy(getNodeAllocator(), needToDelete->valuePtr());
 		this->deallocateNode(needToDelete);
 		this->decSize(1);
 
@@ -1047,17 +1048,17 @@ public:
 
 	void pop_back() noexcept
 	{
-		erase(iterator(m_impl.m_header.m_prev));
+		erase(iterator(mImpl.mHeader.mPrev));
 	}
 
 	void push_front(const value_type& value)
 	{
-		insert(iterator(m_impl.m_header.m_next), value);
+		insert(iterator(mImpl.mHeader.mNext), value);
 	}
 
 	void push_front(value_type&& value)
 	{
-		insert(iterator(m_impl.m_header.m_next), STD move(value));
+		insert(iterator(mImpl.mHeader.mNext), STD move(value));
 	}
 
 	template<typename ... Args>
@@ -1069,7 +1070,7 @@ public:
 
 	void pop_front() noexcept
 	{
-		erase(iterator(m_impl.m_header.m_next));
+		erase(iterator(mImpl.mHeader.mNext));
 	}
 
 private:
@@ -1147,8 +1148,8 @@ public:
 			throw STD logic_error("Undefined behaviour, if get_allocator() != other.get_allocator()");
 		}
 
-		ListNodeBase::swapNodeBase(m_impl.m_header, other.m_impl.m_header);
-		STD swap(m_impl.m_header.m_size, other.m_impl.m_header.m_size);
+		ListNodeBase::swapNodeBase(mImpl.mHeader, other.mImpl.mHeader);
+		STD swap(mImpl.mHeader.mSize, other.mImpl.mHeader.mSize);
 
 		if constexpr (Node_Alloc_Traits::propagate_on_container_swap::value)
 		{
@@ -1166,20 +1167,20 @@ private:
 			}
 
 			// Inserting [first, last) before pos.
-			ListNodeBase* const position = pos.m_node;
-			ListNodeBase* const start = first.m_node;
-			ListNodeBase* const end = last.m_node;
+			ListNodeBase* const position = pos.mNode;
+			ListNodeBase* const start = first.mNode;
+			ListNodeBase* const end = last.mNode;
 
 			// Remove
-			start->m_prev->m_next = end;
-			end->m_prev->m_next = position;
-			position->m_prev->m_next = start;
+			start->mPrev->mNext = end;
+			end->mPrev->mNext = position;
+			position->mPrev->mNext = start;
 
 			// Link
-			ListNodeBase* const posPrev = position->m_prev;
-			position->m_prev = end->m_prev;
-			end->m_prev = start->m_prev;
-			start->m_prev = posPrev;
+			ListNodeBase* const posPrev = position->mPrev;
+			position->mPrev = end->mPrev;
+			end->mPrev = start->mPrev;
+			start->mPrev = posPrev;
 		}
 
 public:
@@ -1339,7 +1340,7 @@ private:
 		Node* needToDelete = static_cast<Node*>(needToRemove);
 		needToDelete->unlinkMyself();
 
-		Node_Alloc_Traits::destroy(getNodeAllocator(), needToDelete->m_valptr());
+		Node_Alloc_Traits::destroy(getNodeAllocator(), needToDelete->valuePtr());
 		this->deallocateNode(needToDelete);
 		this->decSize(1);
 	}
@@ -1365,7 +1366,7 @@ public:
 			++next;
 			if (p(*first))
 			{
-				fastRemove(first.m_node);
+				fastRemove(first.mNode);
 			}
 		}
 
@@ -1374,7 +1375,7 @@ public:
 
 	void reverse() noexcept
 	{
-		m_impl.m_header.doReverse();
+		mImpl.mHeader.doReverse();
 	}
 
 	size_type unique()
@@ -1391,7 +1392,7 @@ public:
 			++next;
 			if (binaryPredicate(*first, *next))
 			{
-				fastRemove(first.m_node);
+				fastRemove(first.mNode);
 			}
 		}
 
@@ -1401,14 +1402,10 @@ public:
 private:
 
 	template <typename Compare>
-	void doInsertionSortUnChecked(Compare comp)
+	void doGccSort(Compare comp)
 	{
-		for (auto first = begin(), last = end(); first != last; ++first)
-		{
-
-		}
+		
 	}
-
 
 public:
 
@@ -1421,19 +1418,12 @@ public:
 	void sort(Compare comp)
 	{
 		// Do nothing if the list has length 0 or 1.
-		if (const size_type size = size(); size >= 0 && size <= 1)
+		if (const size_type nowSize = size(); nowSize >= 0 && nowSize <= 1)
 		{
 			return;
 		}
 
-		if (size() < 32)
-		{
-			doInsertionSortUnChecked(comp);
-			return;
-		}
-
-
-
+		doGccSort(comp);
 	}
 
 	template <typename Comsumer>
@@ -1496,7 +1486,13 @@ inline bool operator==(const MyList<T, Alloc>& lhs, const MyList<T, Alloc>& rhs)
 }
 
 template <typename T, typename Alloc>
-inline bool operator!=(const std::list<T, Alloc>& lhs, const MyList<T, Alloc>& rhs)
+void swap(MyList<T, Alloc>& lhs, MyList<T, Alloc>& rhs) noexcept(noexcept(lhs.swap(rhs)))
+{
+	lhs.swap(rhs);
+}
+
+template <typename T, typename Alloc>
+inline bool operator!=(const MyList<T, Alloc>& lhs, const MyList<T, Alloc>& rhs)
 {
 	return !(lhs == rhs);
 }

@@ -26,6 +26,9 @@
     <ClInclude Include="Healper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="MyForwardList.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />
