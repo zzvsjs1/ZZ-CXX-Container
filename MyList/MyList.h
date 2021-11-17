@@ -3,7 +3,7 @@
 #define MYLIST
 
 #include <algorithm>
-#include <array>
+#include <cstdlib>
 #include <cassert>
 #include <memory>
 #include <cassert>
@@ -410,7 +410,7 @@ template <typename T, typename Alloc>
 class ListBase
 {
 
-protected:
+public:
 
 	using T_Alloc_Type = typename MyAlloctTraits<Alloc>:: template rebind<T>::other;
 	using T_Alloc_Traits = MyAlloctTraits<Alloc>;
@@ -423,11 +423,11 @@ protected:
 		ListNodeHeader mHeader;
 
 		ListImpl() noexcept(STD is_nothrow_default_constructible_v<Node_Alloc_Type>)
-			: Node_Alloc_Type()
+			: Node_Alloc_Type(), mHeader()
 		{}
 
 		ListImpl(const Node_Alloc_Type& other) noexcept
-			: Node_Alloc_Type(other)
+			: Node_Alloc_Type(other), mHeader()
 		{}
 
 		ListImpl(ListImpl&& other) = default;
@@ -437,7 +437,7 @@ protected:
 		{}
 
 		ListImpl(Node_Alloc_Type&& other) noexcept
-			: Node_Alloc_Type(STD move(other))
+			: Node_Alloc_Type(STD move(other)), mHeader()
 		{}
 
 	};
@@ -611,10 +611,10 @@ private:
 	template <typename ... Args>
 	Node* createNode(Args&& ... args)
 	{
-		Node* node = allocateNode();
-		auto& alloc = getNodeAllocator(); // Throws
+		Node* node = allocateNode(); // Throws
+		auto& alloc = getNodeAllocator();
 		AllocatedPtrGuard<Node_Alloc_Type> guard{ alloc, node };
-		Node_Alloc_Traits::construct(alloc, node->valuePtr(), STD forward<Args>(args)...);  // Throws
+		Node_Alloc_Traits::construct(alloc, node->valuePtr(), STD forward<Args>(args)...); // Throws
 		return guard.release();
 	}
 
@@ -1143,9 +1143,9 @@ public:
 		}
 
 		// Not necessary.
-		if (get_allocator != other.get_allocator())
+		if (get_allocator() != other.get_allocator())
 		{
-			throw STD logic_error("Undefined behaviour, if get_allocator() != other.get_allocator()");
+			abort();
 		}
 
 		ListNodeBase::swapNodeBase(mImpl.mHeader, other.mImpl.mHeader);
@@ -1404,7 +1404,48 @@ private:
 	template <typename Compare>
 	void doGccSort(Compare comp)
 	{
-		
+		MyList carry;
+		MyList temp[64];
+		MyList *fill = temp;
+		MyList *counter;
+
+		TRY_START
+		do
+		{
+			carry.splice(carry.begin(), *this, begin());
+
+			for (counter = temp; counter != fill && !counter->empty(); ++counter)
+			{
+				counter->merge(carry, comp);
+				carry.swap(*counter);
+			}
+
+			carry.swap(*counter);
+
+			if (counter == fill)
+			{
+				++fill;
+			}
+		} while (!empty());
+
+		for (counter = temp + 1; counter != fill; ++counter)
+		{
+			counter->merge(*(counter - 1), comp);
+		}
+
+		swap(*(fill - 1));
+
+		CATCH_ALL
+
+		splice(end(), carry);
+
+		for (size_type i = 0; i < sizeof(temp) / sizeof(temp[0]); ++i)
+		{
+			splice(end(), temp[i]);
+		}
+		THROW_AGAIN
+
+		END_CATCH
 	}
 
 public:

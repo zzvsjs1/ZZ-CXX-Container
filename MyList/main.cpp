@@ -1,5 +1,6 @@
 #include <iostream>
 
+#include <algorithm>
 #include <list>
 #include <memory>
 #include <string>
@@ -7,6 +8,7 @@
 #include <type_traits>
 #include <forward_list>
 #include <set>
+#include <vector>
 
 #include "MyList.h"
 #include "Healper.h"
@@ -19,6 +21,7 @@ using std::string;
 using std::vector;
 using std::list;
 using std::forward_list;
+using std::move;
 
 using namespace jstd;
 
@@ -48,13 +51,45 @@ std::ostream& operator<<(std::ostream& ostr, const list<T>& list)
 	return ostr;
 }
 
+template <typename T>
+std::ostream& operator<<(std::ostream& ostr, const vector<T>& list)
+{
+	for (const auto &i : list)
+	{
+		ostr << i << " ";
+	}
+
+	ostr << endl;
+
+	return ostr;
+}
+
+struct MyStruct
+{
+
+	MyStruct(int i)
+		: d(i)
+	{}
+
+	int d;
+};
+
 int main()
 {
-	MyList b = { 1, 2, 2, 3, 3, 2, 1, 1, 2 };
+	MyList<MyStruct> b;
 
-	b.sort();
+	b.emplace_back(10);
 
-	cout << b;
+	sizeof(vector<int>);
+
+
+	ListBase<MyStruct, std::allocator<MyStruct>>::Node_Alloc_Type a;
+
+	auto* v = ListBase<MyStruct, std::allocator<MyStruct>>::Node_Alloc_Traits::allocate(a, 1);
+
+	//ListBase<MyStruct, std::allocator<MyStruct>>::Node_Alloc_Traits::construct(a, v, 5);
+
+
 
 	return 0;
 }

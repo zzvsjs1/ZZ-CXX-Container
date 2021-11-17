@@ -31,7 +31,19 @@ public:
 		other.mNext = nullptr;
 	}
 
+	FListNodeBase(const FListNodeBase&) = delete;
+
+	FListNodeBase& operator=(const FListNodeBase&) = delete;
+
+	FListNodeBase& operator=(FListNodeBase&& ohter) noexcept
+	{
+
+		return *this;
+	}
+
 	~FListNodeBase() = default;
+
+	
 
 
 
