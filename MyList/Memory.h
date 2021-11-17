@@ -36,7 +36,7 @@ public:
 	AllocatorBase(AllocatorBase& other) noexcept {}
 
 	template <typename T2>
-	AllocatorBase(const AllocatorBase<T2>&) noexcept {}
+	AllocatorBase(const AllocatorBase<T2>& other) noexcept {}
 
 	~AllocatorBase() = default;
 
@@ -47,7 +47,7 @@ public:
 			return nullptr;
 		}
 
-		if (alignof(T) > __STDCPP_DEFAULT_NEW_ALIGNMENT__)
+		if constexpr (alignof(T) > __STDCPP_DEFAULT_NEW_ALIGNMENT__)
 		{
 			return static_cast<T*>(::operator new(size * sizeof(T), STD align_val_t(alignof(T))));
 		}
@@ -57,7 +57,7 @@ public:
 
 	void deallocate(T* p, size_type size)
 	{
-		if (alignof(T) > __STDCPP_DEFAULT_NEW_ALIGNMENT__)
+		if constexpr (alignof(T) > __STDCPP_DEFAULT_NEW_ALIGNMENT__)
 		{
 			::operator delete(p, size * sizeof(T), STD align_val_t(alignof(T)));
 		}
@@ -125,10 +125,10 @@ public:
 	Allocator(const Allocator& other) noexcept
 		: AllocatorBase<T>(other) { }
 
-	Allocator& operator=(const Allocator&) = default;
+	Allocator& operator=(const Allocator& other) = default;
 
 	template <typename T2>
-	Allocator(const Allocator<T2>&) noexcept { }
+	Allocator(const Allocator<T2>& other) noexcept { }
 
 	~Allocator() = default;
 

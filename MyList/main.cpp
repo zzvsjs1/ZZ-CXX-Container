@@ -76,13 +76,19 @@ struct MyStruct
 
 int main()
 {
-	MyList<string, Allocator<MyStruct>> b = { "Herllo" };
+	MyList<string, Allocator<string>> b = { "Herllo" };
 
-	cout << b;
+	MyList<list<string>, Allocator<list<string>>> g = { {"a", "b"}, {"a", "b"} };
 
-	ListBase<MyStruct, std::allocator<MyStruct>>::Node_Alloc_Type a;
+	MyList<list<string>, Allocator<list<string>>> k = { {"a", "b"}, {"a", "b"} };
 
-	auto* v = ListBase<MyStruct, std::allocator<MyStruct>>::Node_Alloc_Traits::allocate(a, 1);
+	g = std::move(k);
+
+	cout << g;
+
+	/*ListBase<MyStruct, std::allocator<MyStruct>>::Node_Alloc_Type a;
+
+	auto* v = ListBase<MyStruct, std::allocator<MyStruct>>::Node_Alloc_Traits::allocate(a, 1);*/
 
 	//ListBase<MyStruct, std::allocator<MyStruct>>::Node_Alloc_Traits::construct(a, v, 5);
 

@@ -787,9 +787,7 @@ public:
 			}
 			else
 			{
-				if (auto& thisAlloc = this->getNodeAllocator(),
-					otherAlloc = other.getNodeAllocator();
-					this->getNodeAllocator() == other.getNodeAllocator())
+				if (getNodeAllocator() == other.getNodeAllocator())
 				{
 					doDefaultMove(STD move(other));
 				}
