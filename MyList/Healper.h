@@ -55,9 +55,9 @@ fancyPointerToAddress(T* ptr) noexcept
 }
 
 //
-template <typename Ptr>
-constexpr typename STD pointer_traits<Ptr>::element_type*
-fancyPointerToAddress(const Ptr& ptr)
+template <typename Type>
+constexpr typename STD pointer_traits<Type>::element_type*
+fancyPointerToAddress(const Type& ptr)
 {
 	return fancyPointerToAddress(ptr.operator->());
 }
@@ -124,16 +124,16 @@ struct MyAlloctTraits : public STD allocator_traits<Alloc>
 	using Base_type::max_size;
 
 	// overload construct for non-standard pointer types
-	template <typename Ptr, typename... Args>
-	static constexpr STD enable_if_t<is_custom_pointer_v<pointer, Ptr>> 
-		construct(Alloc& alloc, Ptr ptr, Args&&... args)
+	template <typename Type, typename... Args>
+	static constexpr STD enable_if_t<is_custom_pointer_v<pointer, Type>> 
+		construct(Alloc& alloc, Type ptr, Args&&... args)
 	{
 		Base_type::construct(alloc, fancyPointerToAddress(ptr), STD forward<Args>(args)...);
 	}
 
 	// overload destroy for non-standard pointer types
-	template <typename Ptr>
-	static constexpr STD enable_if_t<is_custom_pointer_v<pointer, Ptr>> destroy(Alloc& alloc, Ptr ptr)
+	template <typename Type>
+	static constexpr STD enable_if_t<is_custom_pointer_v<pointer, Type>> destroy(Alloc& alloc, Type ptr)
 	{
 		Base_type::destroy(alloc, fancyPointerToAddress(ptr));
 	}
@@ -200,8 +200,8 @@ struct AllocatedPtrGuard
 		: m_alloc(STD addressof(alloc)), m_ptr(ptr)
 	{}
 
-	template <typename Ptr, typename Req = require<STD is_same<Ptr, value_type*>>>
-	AllocatedPtrGuard(Alloc& alloc, Ptr ptr)
+	template <typename Type, typename Req = require<STD is_same<Type, value_type*>>>
+	AllocatedPtrGuard(Alloc& alloc, Type ptr)
 		: m_alloc(STD addressof(alloc)), m_ptr(STD pointer_traits<pointer>::pointer_to(*ptr))
 	{}
 

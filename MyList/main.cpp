@@ -12,6 +12,7 @@
 
 #include "MyList.h"
 #include "Healper.h"
+#include "Memory.h"
 
 using std::cin;
 using std::cout;
@@ -25,8 +26,8 @@ using std::move;
 
 using namespace jstd;
 
-template <typename T>
-std::ostream& operator<<(std::ostream& ostr, const MyList<T>& list)
+template <typename T, typename Alloc>
+std::ostream& operator<<(std::ostream& ostr, const MyList<T, Alloc>& list)
 {
     for (const auto &i : list) 
 	{
@@ -38,8 +39,8 @@ std::ostream& operator<<(std::ostream& ostr, const MyList<T>& list)
     return ostr;
 }
 
-template <typename T>
-std::ostream& operator<<(std::ostream& ostr, const list<T>& list)
+template <typename T, typename Alloc>
+std::ostream& operator<<(std::ostream& ostr, const list<T, Alloc>& list)
 {
 	for (const auto &i : list)
 	{
@@ -51,8 +52,8 @@ std::ostream& operator<<(std::ostream& ostr, const list<T>& list)
 	return ostr;
 }
 
-template <typename T>
-std::ostream& operator<<(std::ostream& ostr, const vector<T>& list)
+template <typename T, typename Alloc>
+std::ostream& operator<<(std::ostream& ostr, const vector<T, Alloc>& list)
 {
 	for (const auto &i : list)
 	{
@@ -68,20 +69,16 @@ struct MyStruct
 {
 
 	MyStruct(int i)
-		: d(i)
-	{}
+		: d(i)	{ }
 
 	int d;
 };
 
 int main()
 {
-	MyList<MyStruct> b;
+	MyList<string, Allocator<MyStruct>> b = { "Herllo" };
 
-	b.emplace_back(10);
-
-	sizeof(vector<int>);
-
+	cout << b;
 
 	ListBase<MyStruct, std::allocator<MyStruct>>::Node_Alloc_Type a;
 
