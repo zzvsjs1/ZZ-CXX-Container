@@ -67,7 +67,11 @@ public:
 			return;
 		}
 
+		auto* newTail = mNext;
+		while (auto* nextNext = newTail->mNext)
+		{
 
+		}
 	}
 
 	FListNodeBase* mNext = nullptr;
@@ -149,16 +153,36 @@ public:
 
 	Self next() const noexcept
 	{
-		return mNode? Self(mNode->mNext) : Self(nullptr);
+		return mNode ? Self(mNode->mNext) : Self(nullptr);
 	}
 
 	FListNodeBase* mNode;
 
 };
 
+template <typename T>
+class FListConstIterator
+{
 
 
 
+};
+
+template <typename T, typename Alloc>
+class FListBase
+{
+
+
+
+};
+
+template <typename T, typename Alloc = STD allocator<T>>
+class FList : protected FListBase<T, Alloc>
+{
+
+
+
+};
 
 JSTD_END
 

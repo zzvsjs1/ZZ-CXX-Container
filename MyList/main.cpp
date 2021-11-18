@@ -9,6 +9,7 @@
 #include <forward_list>
 #include <set>
 #include <vector>
+#include <chrono>
 
 #include "MyList.h"
 #include "Healper.h"
@@ -71,20 +72,38 @@ struct MyStruct
 	MyStruct(int i)
 		: d(i)	{ }
 
+	~MyStruct() noexcept
+	{
+		cout << "Good Bye ";
+	}
+
 	int d;
 };
 
 int main()
 {
-	MyList<string, Allocator<string>> b = { "Herllo" };
+	MyList<string> a;
+	//list<string> a;
+	auto c = "cool";
 
-	MyList<list<string>, Allocator<list<string>>> g = { {"a", "b"}, {"a", "b"} };
+	const auto start = std::chrono::steady_clock::now();
+	for (size_t i = 0; i < 100000; i++)
+	{
+		a.emplace_back(c);
+	}
+	const auto end = std::chrono::steady_clock::now();
+	std::chrono::duration<double> elapsed_seconds = end - start;
+	std::cout << "elapsed time: " << elapsed_seconds.count() << "s\n";
 
-	MyList<list<string>, Allocator<list<string>>> k = { {"a", "b"}, {"a", "b"} };
+	//list<MyStruct> c(3, 5);
 
-	g = std::move(k);
+	//MyList<list<string>, Allocator<list<string>>> g = { {"a", "b"}, {"a", "b"} };
 
-	cout << g;
+	//MyList<list<string>, Allocator<list<string>>> k = { {"a", "b"}, {"a", "b"} };
+
+	//g = std::move(k);
+
+	//cout << g;
 
 	/*ListBase<MyStruct, std::allocator<MyStruct>>::Node_Alloc_Type a;
 

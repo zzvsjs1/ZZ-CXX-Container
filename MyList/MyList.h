@@ -214,6 +214,10 @@ public:
 
 	ListNode() = default;
 
+	template <typename ... Args>
+	ListNode(Args&& ... args)
+		: ListNodeBase(), actualData(STD forward<Args>(args)...) { }
+
 	~ListNode() = default;
 
 	T* valuePtr()
@@ -541,8 +545,8 @@ public:
 		{
 			Node* temp = static_cast<Node*>(next);
 			next = next->mNext; // 
-			T* value = temp->valuePtr();
-			Node_Alloc_Traits::destroy(getNodeAllocator(), value);
+			//T* value = temp->valuePtr();
+			Node_Alloc_Traits::destroy(getNodeAllocator(), temp);
 			deallocateNode(temp);
 		}
 	}
@@ -614,7 +618,7 @@ private:
 		Node* node = allocateNode(); // Throws
 		auto& alloc = getNodeAllocator();
 		AllocatedPtrGuard<Node_Alloc_Type> guard{ alloc, node };
-		Node_Alloc_Traits::construct(alloc, node->valuePtr(), STD forward<Args>(args)...); // Throws
+		Node_Alloc_Traits::construct(alloc, node, STD forward<Args>(args)...); // Throws
 		return guard.release();
 	}
 
@@ -665,7 +669,7 @@ public:
 		initializeValueN(size, value);
 	}
 
-	template <typename InputIterator, typename = STD enable_if_t<is_input_iter_v<InputIterator>>> // true, if the class provide iterator_category. Otherwise is false.
+	template <typename InputIterator, typename = RequireInputIter<InputIterator>> // true, if the class provide iterator_category. Otherwise is false.
 	MyList(InputIterator first, InputIterator last, const allocator_type& alloc = allocator_type())
 		:Base(Node_Alloc_Type(alloc))
 	{
@@ -1338,7 +1342,7 @@ private:
 		Node* needToDelete = static_cast<Node*>(needToRemove);
 		needToDelete->unlinkMyself();
 
-		Node_Alloc_Traits::destroy(getNodeAllocator(), needToDelete->valuePtr());
+		Node_Alloc_Traits::destroy(getNodeAllocator(), needToDelete);
 		this->deallocateNode(needToDelete);
 		this->decSize(1);
 	}

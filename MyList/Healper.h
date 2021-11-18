@@ -45,6 +45,9 @@ using is_input_iter = STD is_convertible<iterator_category_t<Iter>, STD input_it
 template <typename Iter>
 inline constexpr bool is_input_iter_v = is_input_iter<Iter>::value;
 
+template <typename InputIter>
+using RequireInputIter = STD enable_if_t<STD is_convertible_v<iterator_category_t<InputIter>, STD input_iterator_tag>>;
+
 // 
 template <typename T>
 constexpr T*
