@@ -1,2 +1,2 @@
-# CList
-A cottage of std::list for c++ programming language.
+# ZZ CXX Container 
+A tiny stl for c++ programming language.
