@@ -152,6 +152,8 @@
     <ClInclude Include="Healper.h" />
     <ClInclude Include="MyForwardList.h" />
     <ClInclude Include="MyList.h" />
+    <ClInclude Include="PritorityQueue.h" />
+    <ClInclude Include="Queue.h" />
     <ClInclude Include="String.h" />
     <ClInclude Include="Vector.h" />
   </ItemGroup>

@@ -16,6 +16,7 @@
 #include "MyList.h"
 #include "Healper.h"
 #include "Memory.h"
+#include "PritorityQueue.h"
 
 using std::cin;
 using std::cout;
@@ -68,6 +69,20 @@ std::ostream& operator<<(std::ostream& ostr, const vector<T, Alloc>& list)
 	return ostr;
 }
 
+template <typename T, typename Container, typename Compare>
+std::ostream& operator<<(std::ostream& ostr, PriorityQueue<T, Container, Compare>& pq)
+{
+	for (decltype(pq.size()) size = pq.size(), start = 0; start < size; ++start)
+	{
+		ostr << pq.top() << " ";
+		pq.pop();
+	}
+
+	ostr << endl;
+
+	return ostr;
+}
+
 struct MyStruct
 {
 
@@ -87,11 +102,11 @@ int main()
 	//MyList<string> a;
 	//a.sort();
 
-	std::ofstream out("Cool.txt", std::ios_base::binary);
-	out.exceptions(std::ios_base::failbit | std::ios_base::badbit);
-	auto a = "cool";
-	out.write(a, std::strlen(a));
+	vector v = { 5, 9, 6, 7, 1, 2, 3 };
 
+	PriorityQueue<int> pq{v.begin(), v.end()};
+
+	cout << pq;
 
 	//MyList<string> a;
 	////list<string> a;

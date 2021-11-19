@@ -25,10 +25,15 @@ JSTD_START
 template <typename Pointer1, typename Pointer2>
 using is_custom_pointer = STD conjunction<STD is_same<Pointer1, Pointer2>, STD negation<STD is_pointer<Pointer2>>>;
 
-//
+/*
+* 
+*/
 template <typename Pointer1, typename Pointer2>
 inline constexpr bool is_custom_pointer_v = is_custom_pointer<Pointer1, Pointer2>::value;
 
+/*
+* 
+*/
 template <typename... Cond>
 using require = STD enable_if_t<STD conjunction_v<Cond...>>;
 
@@ -36,8 +41,11 @@ using require = STD enable_if_t<STD conjunction_v<Cond...>>;
 template <typename Iter>
 using iterator_category_t = typename STD iterator_traits<Iter>::iterator_category;
 
-// Check if the data_type is input iterator. We need to get the iterator_category first, and then
-// check if the tag is inhiread to the std::input_iterator_tag.
+/*
+* Check if the data_type is input iterator. 
+* We need to get the iterator_category first, and then
+* check if the tag is inhiread to the std::input_iterator_tag.
+*/
 template <typename Iter>
 using is_input_iter = STD is_convertible<iterator_category_t<Iter>, STD input_iterator_tag>;
 
@@ -45,10 +53,35 @@ using is_input_iter = STD is_convertible<iterator_category_t<Iter>, STD input_it
 template <typename Iter>
 inline constexpr bool is_input_iter_v = is_input_iter<Iter>::value;
 
+// 
 template <typename InputIter>
 using RequireInputIter = STD enable_if_t<STD is_convertible_v<iterator_category_t<InputIter>, STD input_iterator_tag>>;
 
+/* 
+* Is allocator template.
+* Trait to detect Allocator-like types.
+*/
+template <typename Alloc, typename = void>
+struct is_allocator : STD false_type { };
+
 // 
+template <typename Alloc>
+struct is_allocator <Alloc, 
+	STD void_t<typename Alloc::value_type, decltype(STD declval<Alloc&>().allocate(size_t{})) >>
+	: STD true_type { };
+
+// A shortcut to get the is_allocator's value.
+template <typename Alloc>
+inline constexpr bool is_allocator_v = is_allocator<Alloc>::value;
+
+// 
+template <typename Alloc>
+using RequireAllocator = STD enable_if_t<is_allocator_v<Alloc>, Alloc>;
+
+// 
+template <typename Alloc>
+using RequireNotAllocator = STD enable_if_t<!is_allocator_v<Alloc>, Alloc>;
+
 template <typename T>
 constexpr T*
 fancyPointerToAddress(T* ptr) noexcept

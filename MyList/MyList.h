@@ -1564,6 +1564,29 @@ inline bool operator>=(const MyList<T, Alloc>& lhs, const MyList<T, Alloc>& rhs)
 	return !(lhs < rhs);
 }
 
+/*
+* This deduction guide is provided for list to allow deduction from an iterator range. 
+* This overload participates in overload resolution only if InputIt satisfies 
+* LegacyInputIterator and Alloc satisfies Allocator.
+*
+* Note: the extent to which the library determines that a type does not satisfy LegacyInputIterator 
+* is unspecified, except that as a minimum integral types do not qualify as input iterators. 
+* Likewise, the extent to which it determines that a type does not satisfy Allocator is unspecified, 
+* except that as a minimum the member type Alloc::value_type must exist and the expression 
+* std::declval<Alloc&>().allocate(std::size_t{}) must be well-formed when treated as an unevaluated operand.
+* 
+* refer from: https://en.cppreference.com/w/cpp/container/list/deduction_guides
+*/
+template 
+<
+	typename InputIterator, 
+	typename ValT = typename STD iterator_traits<InputIterator>::value_type,
+	typename Allocator = STD allocator<ValT>,
+	typename = RequireInputIter<InputIterator>,
+	typename = RequireAllocator<Allocator>
+>
+MyList(InputIterator, InputIterator, Allocator = Allocator()) -> MyList<ValT, Allocator>;
+
 JSTD_END
 
 #endif // !MYLIST

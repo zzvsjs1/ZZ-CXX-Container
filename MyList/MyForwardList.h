@@ -385,8 +385,55 @@ public:
 		: Base(Node_Alloc_Type(alloc))
 	{ }
 
+private:
 
 
+
+
+public:
+
+	FList(size_type count, const value_type& value, const Alloc& alloc = Alloc())
+		: Base(Node_Alloc_Type(alloc))
+	{
+
+	}
+
+	explicit FList(size_type count, const Alloc& alloc = Alloc());
+
+	template <typename InputIt, typename = RequireInputIter<InputIt>>
+	FList(InputIt first, InputIt last, const Alloc& alloc = Alloc());
+
+	FList(const FList& other);
+
+	FList(const FList& other, const Alloc& alloc);
+
+	FList(FList&& other);
+
+	FList(FList&& other, const Alloc& alloc);
+
+	FList(STD initializer_list<value_type> init, const Alloc& alloc = Alloc());
+
+	~FList() = default;
+
+	FList& operator=(const FList& other)
+	{
+
+	}
+
+	FList& operator=(FList&& other) noexcept(Node_Alloc_Traits::always_equal_v())
+	{
+
+	}
+
+	FList& operator=(STD initializer_list<T> ilist)
+	{
+
+	}
+
+	allocator_type get_allocator() const noexcept
+	{
+		return allocator_type();
+	}
 };
 
 JSTD_END

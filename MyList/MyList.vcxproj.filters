@@ -44,6 +44,12 @@
     <ClInclude Include="BRTree.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="PritorityQueue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Queue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />
