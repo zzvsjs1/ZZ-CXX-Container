@@ -1441,7 +1441,7 @@ private:
 
 		splice(end(), carry);
 
-		for (size_type i = 0; i < sizeof(temp) / sizeof(temp[0]); ++i)
+		for (size_type i = 0; i < sizeof temp / sizeof temp[0]; ++i)
 		{
 			splice(end(), temp[i]);
 		}

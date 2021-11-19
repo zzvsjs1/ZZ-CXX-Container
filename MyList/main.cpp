@@ -10,6 +10,8 @@
 #include <set>
 #include <vector>
 #include <chrono>
+#include <string>
+#include <fstream>
 
 #include "MyList.h"
 #include "Healper.h"
@@ -82,18 +84,27 @@ struct MyStruct
 
 int main()
 {
-	MyList<string> a;
-	//list<string> a;
-	auto c = "cool";
+	//MyList<string> a;
+	//a.sort();
 
-	const auto start = std::chrono::steady_clock::now();
-	for (size_t i = 0; i < 100000; i++)
-	{
-		a.emplace_back(c);
-	}
-	const auto end = std::chrono::steady_clock::now();
-	std::chrono::duration<double> elapsed_seconds = end - start;
-	std::cout << "elapsed time: " << elapsed_seconds.count() << "s\n";
+	std::ofstream out("Cool.txt", std::ios_base::binary);
+	out.exceptions(std::ios_base::failbit | std::ios_base::badbit);
+	auto a = "cool";
+	out.write(a, std::strlen(a));
+
+
+	//MyList<string> a;
+	////list<string> a;
+	//auto c = "cool";
+
+	//const auto start = std::chrono::steady_clock::now();
+	//for (size_t i = 0; i < 100000; i++)
+	//{
+	//	a.emplace_back(c);
+	//}
+	//const auto end = std::chrono::steady_clock::now();
+	//std::chrono::duration<double> elapsed_seconds = end - start;
+	//std::cout << "elapsed time: " << elapsed_seconds.count() << "s\n";
 
 	//list<MyStruct> c(3, 5);
 
