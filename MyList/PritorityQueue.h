@@ -42,9 +42,9 @@ public:
 
 	template 
 	<
-		typename Container = Container, 
+		typename aContainer = Container, 
 		typename Requires 
-		= STD enable_if_t<STD conjunction_v<STD is_default_constructible<Compare>, STD is_default_constructible<Container>>>
+		= STD enable_if_t<STD conjunction_v<STD is_default_constructible<Compare>, STD is_default_constructible<aContainer>>>
 	>
 	PriorityQueue()
 		: container(), comp() { }

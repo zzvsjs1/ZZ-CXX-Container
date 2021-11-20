@@ -99,14 +99,18 @@ struct MyStruct
 
 int main()
 {
+	//std::unique_ptr<MyStruct> d(new MyStruct(1));
+
+	UniquePtr<MyStruct> a(new MyStruct(1));
+
 	//MyList<string> a;
 	//a.sort();
 
-	vector v = { 5, 9, 6, 7, 1, 2, 3 };
+	//vector v = { 5, 9, 6, 7, 1, 2, 3 };
 
-	PriorityQueue<int> pq{v.begin(), v.end()};
+	//PriorityQueue<int> pq{v.begin(), v.end()};
 
-	cout << pq;
+	//cout << pq;
 
 	//MyList<string> a;
 	////list<string> a;
