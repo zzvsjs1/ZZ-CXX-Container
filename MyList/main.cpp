@@ -13,6 +13,7 @@
 #include <string>
 #include <fstream>
 
+#include "Array.h"
 #include "MyList.h"
 #include "Healper.h"
 #include "Memory.h"
@@ -33,20 +34,20 @@ using namespace jstd;
 template <typename T, typename Alloc>
 std::ostream& operator<<(std::ostream& ostr, const MyList<T, Alloc>& list)
 {
-    for (const auto &i : list) 
+	for (const auto& i : list)
 	{
-        ostr << i << " ";
-    }
+		ostr << i << " ";
+	}
 
 	ostr << endl;
 
-    return ostr;
+	return ostr;
 }
 
 template <typename T, typename Alloc>
 std::ostream& operator<<(std::ostream& ostr, const list<T, Alloc>& list)
 {
-	for (const auto &i : list)
+	for (const auto& i : list)
 	{
 		ostr << i << " ";
 	}
@@ -59,7 +60,7 @@ std::ostream& operator<<(std::ostream& ostr, const list<T, Alloc>& list)
 template <typename T, typename Alloc>
 std::ostream& operator<<(std::ostream& ostr, const vector<T, Alloc>& list)
 {
-	for (const auto &i : list)
+	for (const auto& i : list)
 	{
 		ostr << i << " ";
 	}
@@ -69,8 +70,8 @@ std::ostream& operator<<(std::ostream& ostr, const vector<T, Alloc>& list)
 	return ostr;
 }
 
-template <typename T, typename Container, typename Compare>
-std::ostream& operator<<(std::ostream& ostr, PriorityQueue<T, Container, Compare>& pq)
+template <typename t, typename container, typename compare>
+std::ostream& operator<<(std::ostream& ostr, PriorityQueue<t, container, compare>& pq)
 {
 	for (decltype(pq.size()) size = pq.size(), start = 0; start < size; ++start)
 	{
@@ -83,11 +84,24 @@ std::ostream& operator<<(std::ostream& ostr, PriorityQueue<T, Container, Compare
 	return ostr;
 }
 
+template <typename T, STD size_t NumberOfData>
+std::ostream& operator<<(std::ostream& ostr, Array<T, NumberOfData> arr)
+{
+	for (const auto& d : arr)
+	{
+		ostr << d << " ";
+	}
+
+	ostr << endl;
+
+	return ostr;
+}
+
 struct MyStruct
 {
 
 	MyStruct(int i)
-		: d(i)	{ }
+		: d(i) { }
 
 	~MyStruct() noexcept
 	{
@@ -100,9 +114,8 @@ struct MyStruct
 int main()
 {
 	// -Wall
-	UniquePtr<int> a(new int(1));
 
-	cout << *a;
+
 
 	//MyList<string> a;
 	//a.sort();

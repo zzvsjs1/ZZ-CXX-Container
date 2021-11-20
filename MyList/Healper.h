@@ -7,6 +7,8 @@
 
 #include "Config.h"
 
+JSTD_START
+
 // C++17 version of the GCC "is custom pointer" template.
 template <typename Pointer1, typename Pointer2>
 using is_custom_pointer = STD conjunction<STD is_same<Pointer1, Pointer2>, STD negation<STD is_pointer<Pointer2>>>;
