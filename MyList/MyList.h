@@ -205,6 +205,11 @@ public:
 	size_t mSize;
 };
 
+struct InitializeDataTag
+{
+	explicit InitializeDataTag() = default;
+};
+
 // An actual node in the list.
 template <typename T>
 class ListNode : public ListNodeBase
@@ -214,8 +219,12 @@ public:
 
 	ListNode() = default;
 
+	template <typename... Args>
+	explicit ListNode(Args&&... args)
+		: ListNodeBase(), actualData(STD forward<Args>(args)...) { }
+
 	template <typename ... Args>
-	ListNode(Args&& ... args)
+	ListNode(InitializeDataTag, Args&&... args)
 		: ListNodeBase(), actualData(STD forward<Args>(args)...) { }
 
 	~ListNode() = default;

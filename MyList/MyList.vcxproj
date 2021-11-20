@@ -24,6 +24,7 @@
     <ProjectGuid>{9e9d949a-ec91-4582-9f09-843cc604b318}</ProjectGuid>
     <RootNamespace>MyList</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>CXXLIB</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -146,6 +147,9 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Allocator.h" />
+    <ClInclude Include="Array.h" />
+    <ClInclude Include="Config.h" />
     <ClInclude Include="Memory.h" />
     <ClInclude Include="BRTree.h" />
     <ClInclude Include="Deque.h" />
@@ -154,7 +158,9 @@
     <ClInclude Include="MyList.h" />
     <ClInclude Include="PritorityQueue.h" />
     <ClInclude Include="Queue.h" />
+    <ClInclude Include="SharePointer.h" />
     <ClInclude Include="String.h" />
+    <ClInclude Include="UniquePointer.h" />
     <ClInclude Include="Vector.h" />
   </ItemGroup>
   <ItemGroup>

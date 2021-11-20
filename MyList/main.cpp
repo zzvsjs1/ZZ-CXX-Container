@@ -99,9 +99,10 @@ struct MyStruct
 
 int main()
 {
-	//std::unique_ptr<MyStruct> d(new MyStruct(1));
+	// -Wall
+	UniquePtr<int> a(new int(1));
 
-	UniquePtr<MyStruct> a(new MyStruct(1));
+	cout << *a;
 
 	//MyList<string> a;
 	//a.sort();

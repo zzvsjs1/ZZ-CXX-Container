@@ -5,21 +5,7 @@
 #include <type_traits>
 #include <memory>
 
-#ifndef JSTD_START
-
-#define JSTD_START namespace jstd {
-#define JSTD_END }
-
-#endif // !JSTD_START
-
-JSTD_START
-
-#define STD ::std::
-#define NODISCARD [[nodiscard]]
-#define TRY_START try {
-#define CATCH_ALL } catch(...) {
-#define THROW_AGAIN throw;
-#define END_CATCH }
+#include "Config.h"
 
 // C++17 version of the GCC "is custom pointer" template.
 template <typename Pointer1, typename Pointer2>
@@ -91,9 +77,9 @@ fancyPointerToAddress(T* ptr) noexcept
 }
 
 //
-template <typename Type>
-constexpr typename STD pointer_traits<Type>::element_type*
-fancyPointerToAddress(const Type& ptr)
+template <typename ArrayType>
+constexpr typename STD pointer_traits<ArrayType>::element_type*
+fancyPointerToAddress(const ArrayType& ptr)
 {
 	return fancyPointerToAddress(ptr.operator->());
 }
@@ -160,16 +146,16 @@ struct MyAlloctTraits : public STD allocator_traits<Alloc>
 	using Base_type::max_size;
 
 	// overload construct for non-standard pointer types
-	template <typename Type, typename... Args>
-	static constexpr STD enable_if_t<is_custom_pointer_v<pointer, Type>> 
-		construct(Alloc& alloc, Type ptr, Args&&... args)
+	template <typename ArrayType, typename... Args>
+	static constexpr STD enable_if_t<is_custom_pointer_v<pointer, ArrayType>> 
+		construct(Alloc& alloc, ArrayType ptr, Args&&... args)
 	{
 		Base_type::construct(alloc, fancyPointerToAddress(ptr), STD forward<Args>(args)...);
 	}
 
 	// overload destroy for non-standard pointer types
-	template <typename Type>
-	static constexpr STD enable_if_t<is_custom_pointer_v<pointer, Type>> destroy(Alloc& alloc, Type ptr)
+	template <typename ArrayType>
+	static constexpr STD enable_if_t<is_custom_pointer_v<pointer, ArrayType>> destroy(Alloc& alloc, ArrayType ptr)
 	{
 		Base_type::destroy(alloc, fancyPointerToAddress(ptr));
 	}
@@ -236,8 +222,8 @@ struct AllocatedPtrGuard
 		: m_alloc(STD addressof(alloc)), m_ptr(ptr)
 	{}
 
-	template <typename Type, typename Req = require<STD is_same<Type, value_type*>>>
-	AllocatedPtrGuard(Alloc& alloc, Type ptr)
+	template <typename ArrayType, typename Req = require<STD is_same<ArrayType, value_type*>>>
+	AllocatedPtrGuard(Alloc& alloc, ArrayType ptr)
 		: m_alloc(STD addressof(alloc)), m_ptr(STD pointer_traits<pointer>::pointer_to(*ptr))
 	{}
 
@@ -283,6 +269,55 @@ private:
 
 	Alloc* m_alloc;
 	pointer m_ptr;
+
+};
+
+// Tag type for value-initializing first, constructing second from remaining args.
+struct Zero_Then_Variadic_Args_T {
+	explicit Zero_Then_Variadic_Args_T() = default;
+}; 
+
+// Tag type for constructing first from one arg, constructing second from remaining args.
+struct One_Then_Variadic_Args_T {
+	explicit One_Then_Variadic_Args_T() = default;
+}; 
+
+// Store a pair of values, deriving from empty first
+template <class T1, class T2, bool = STD is_empty_v<T1> && !STD is_final_v<T1>>
+class CompressedPair final : private T1 
+{
+
+public:
+
+	T2 second;
+
+	using MyBase = T1; // for visualization
+
+	template <class... Other2>
+	constexpr explicit CompressedPair(Zero_Then_Variadic_Args_T, Other2&&... value2) 
+		noexcept(
+		STD conjunction_v<STD is_nothrow_default_constructible<T1>, STD is_nothrow_constructible<T2, Other2...>>
+			)
+		: T1(), second(STD forward<Other2>(value2)...) 
+	{ }
+
+	template <class Other1, class... Other2>
+	constexpr CompressedPair(One_Then_Variadic_Args_T, Other1&& value1, Other2&&... value2) 
+		noexcept(
+		STD conjunction_v<STD is_nothrow_constructible<T1, Other1>, STD is_nothrow_constructible<T2, Other2...>>
+		)
+		: T1(STD forward<Other1>(value1)), second(STD forward<Other2>(value2)...) 
+	{ }
+
+	constexpr T1& first() noexcept 
+	{
+		return *this;
+	}
+
+	constexpr const T1& first() const noexcept 
+	{
+		return *this;
+	}
 
 };
 
