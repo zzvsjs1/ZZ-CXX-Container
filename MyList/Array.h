@@ -12,10 +12,10 @@
 
 JSTD_START
 
-template <typename T, STD size_t NumberOfData>
+template <typename T, STD size_t N>
 struct ArrayTraits
 {
-    using ArrayType = T[NumberOfData];
+    using ArrayType = T[N];
     using Is_Swappable = STD is_swappable<T> ;
     using Is_Nothrow_Swappable = STD is_nothrow_swappable<T>;
 
@@ -44,8 +44,8 @@ template <typename T>
 struct ArrayTraits<T, 0>
 {
     struct ArrayType { };
-    typedef STD true_type Is_Swappable;
-    typedef STD true_type Is_Nothrow_Swappable;
+    using Is_Swappable = STD true_type;
+    using Is_Nothrow_Swappable = STD true_type;
 
     static constexpr bool is_nothrow_swappable_v()
     {
@@ -68,7 +68,7 @@ struct ArrayTraits<T, 0>
     }
 };
 
-template <typename T, STD size_t Size>
+template <typename T, STD size_t N>
 class Array
 {
 public:
@@ -85,7 +85,7 @@ public:
     using reverse_iterator = STD reverse_iterator<iterator>;
     using const_reverse_iterator = STD reverse_iterator<const_iterator>;
 
-    using Traits = ArrayTraits<T, Size>;
+    using Traits = ArrayTraits<T, N>;
 
     Array() = default;
 
@@ -113,12 +113,12 @@ public:
 
     constexpr iterator end() noexcept
     {
-        return iterator(data() + Size);
+        return iterator(data() + N);
     }
 
     constexpr const_iterator end() const noexcept
     {
-        return const_iterator(data() + Size);
+        return const_iterator(data() + N);
     }
 
     constexpr reverse_iterator rbegin() noexcept
@@ -148,7 +148,7 @@ public:
 
     constexpr const_iterator cend() const noexcept
     {
-        return const_iterator(data() + Size);
+        return const_iterator(data() + N);
     }
 
     constexpr const_reverse_iterator crbegin() const noexcept
@@ -163,12 +163,12 @@ public:
 
     constexpr size_type size() const noexcept 
     { 
-        return Size; 
+        return N; 
     }
 
     constexpr size_type max_size() const noexcept 
     { 
-        return Size;
+        return N;
     }
 
     [[nodiscard]] constexpr bool empty() const noexcept 
@@ -188,7 +188,7 @@ public:
 
     constexpr reference at(const size_type n) noexcept
     {
-        if (n > Size)
+        if (n > N)
         {
             throw STD out_of_range("Out of range.");
         }
@@ -198,7 +198,7 @@ public:
 
     constexpr const_reference at(const size_type n) const noexcept
     {
-        if (n > Size)
+        if (n > N)
         {
             throw STD out_of_range("Out of range.");
         }
@@ -218,12 +218,12 @@ public:
 
     constexpr reference back() noexcept
     {
-        return Size ? Traits::getRef(mArray, Size - 1) : Traits::getRef(mArray, 0);
+        return N ? Traits::getRef(mArray, N - 1) : Traits::getRef(mArray, 0);
     }
 
     constexpr const_reference back() const noexcept
     {
-        return Size ? Traits::getRef(mArray, Size - 1) : Traits::getRef(mArray, 0);
+        return N ? Traits::getRef(mArray, N - 1) : Traits::getRef(mArray, 0);
     }
 
     constexpr pointer data() noexcept
@@ -245,84 +245,105 @@ private:
 template <typename T, typename... U>
 Array(T, U...) -> Array<STD enable_if_t<(STD is_same_v<T, U>&& ...), T>, 1 + sizeof...(U)>;
 
-template <typename T, STD size_t Size>
-inline bool operator==(const Array<T, Size>& left, const Array<T, Size>& right) noexcept
+template <typename T, STD size_t N>
+inline bool operator==(const Array<T, N>& left, const Array<T, N>& right) noexcept
 {
     return STD equal(left.begin(), left.end(), right.begin());
 }
 
-template <typename T, STD size_t Size>
-inline bool operator!=(const Array<T, Size>& left, const Array<T, Size>& right) noexcept
+template <typename T, STD size_t N>
+inline bool operator!=(const Array<T, N>& left, const Array<T, N>& right) noexcept
 {
     return !(left == right);
 }
 
-template <typename T, STD size_t Size>
-inline bool operator<(const Array<T, Size>& left, const Array<T, Size>& right) noexcept
+template <typename T, STD size_t N>
+inline bool operator<(const Array<T, N>& left, const Array<T, N>& right) noexcept
 {
     return STD lexicographical_compare(left.begin(), left.end(), right.begin(), right.end());
 }
 
-template <typename T, STD size_t Size>
-inline bool operator>(const Array<T, Size>& left, const Array<T, Size>& right) noexcept
+template <typename T, STD size_t N>
+inline bool operator>(const Array<T, N>& left, const Array<T, N>& right) noexcept
 {
     return right < left;
 }
 
-template <typename T, STD size_t Size>
-inline bool operator<=(const Array<T, Size>& left, const Array<T, Size>& right) noexcept
+template <typename T, STD size_t N>
+inline bool operator<=(const Array<T, N>& left, const Array<T, N>& right) noexcept
 {
     return !(left > right);
 }
 
-template <typename T, STD size_t Size>
-inline bool operator>=(const Array<T, Size>& left, const Array<T, Size>& right) noexcept
+template <typename T, STD size_t N>
+inline bool operator>=(const Array<T, N>& left, const Array<T, N>& right) noexcept
 {
     return !(left < right);
 }
 
-template <typename T, STD size_t Size>
-inline STD enable_if_t<ArrayTraits<T, Size>::is_swappable_v()>
-swap(Array<T, Size>& left, Array<T, Size>& right) noexcept(noexcept(left.swap(right)))
+template <typename T, STD size_t N>
+inline STD enable_if_t<ArrayTraits<T, N>::is_swappable_v()>
+swap(Array<T, N>& left, Array<T, N>& right) noexcept(noexcept(left.swap(right)))
 {
     left.swap(right);
 }
 
-template <typename T, STD size_t Size>
-inline STD enable_if_t<!ArrayTraits<T, Size>::is_swappable_v()>
-swap(Array<T, Size>& left, Array<T, Size>& right) = delete;
+template <typename T, STD size_t N>
+inline STD enable_if_t<!ArrayTraits<T, N>::is_swappable_v()>
+swap(Array<T, N>& left, Array<T, N>& right) = delete;
 
-template<std::size_t Interger, typename T, STD size_t Size>
+template<std::size_t Interger, typename T, STD size_t N>
 constexpr T&
-get(Array<T, Size>& arr) noexcept
+get(Array<T, N>& arr) noexcept
 {
-    static_assert(Interger < Size, "array index is within bounds");
-    return ArrayTraits<T, Size>::getRef(arr.mArray, Interger);
+    static_assert(Interger < N, "array index is within bounds");
+    return ArrayTraits<T, N>::getRef(arr.mArray, Interger);
 }
 
-template<std::size_t Interger, typename T, STD size_t Size>
+template<std::size_t Interger, typename T, STD size_t N>
 constexpr T&&
-get(Array<T, Size>&& arr) noexcept
+get(Array<T, N>&& arr) noexcept
 {
-    static_assert(Interger < Size, "array index is within bounds");
+    static_assert(Interger < N, "array index is within bounds");
     return STD move(STD get<Interger>(arr));
 }
 
-template<std::size_t Interger, typename T, STD size_t Size>
+template<std::size_t Interger, typename T, STD size_t N>
 constexpr const T&
-get(const Array<T, Size>& arr) noexcept
+get(const Array<T, N>& arr) noexcept
 {
-    static_assert(Interger < Size, "array index is within bounds");
-    return ArrayTraits<T, Size>::getRef(arr._M_elems, Interger);
+    static_assert(Interger < N, "array index is within bounds");
+    return ArrayTraits<T, N>::getRef(arr._M_elems, Interger);
 }
 
-template<std::size_t Interger, typename T, STD size_t Size>
+template<std::size_t Interger, typename T, STD size_t N>
 constexpr const T&&
-get(const Array<T, Size>&& arr) noexcept
+get(const Array<T, N>&& arr) noexcept
 {
-    static_assert(Interger < Size, "array index is within bounds");
+    static_assert(Interger < N, "array index is within bounds");
     return STD move(STD get<Interger>(arr));
 }
+
+template <typename T>
+struct tuple_size;
+
+// Partial specialization for Array
+template <typename T, STD size_t N>
+struct tuple_size<Array<T, N>>
+    : public STD integral_constant<STD size_t, N> 
+{ };
+
+// tuple_element
+template <STD size_t Int, typename T>
+struct tuple_element;
+
+// Partial specialization for Array
+template <STD size_t Int, typename T, STD size_t N>
+struct tuple_element<Int, Array<T, N>>
+{
+    static_assert(Int < N, "index is out of bounds");
+    typedef T type;
+};
 
 JSTD_END
 

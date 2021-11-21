@@ -84,8 +84,8 @@ std::ostream& operator<<(std::ostream& ostr, PriorityQueue<t, container, compare
 	return ostr;
 }
 
-template <typename T, STD size_t NumberOfData>
-std::ostream& operator<<(std::ostream& ostr, Array<T, NumberOfData> arr)
+template <typename T, STD size_t N>
+std::ostream& operator<<(std::ostream& ostr, Array<T, N> arr)
 {
 	for (const auto& d : arr)
 	{
@@ -115,7 +115,13 @@ int main()
 {
 	// -Wall
 
+	std::unique_ptr<int> a = std::make_unique<int>(10);
+	
+	UniquePtr b = MakeUnique<string>("sdfsdf");
+	UniquePtr c = MakeUnique<int>(9);
+	b = std::move(b);
 
+	cout << *b;
 
 	//MyList<string> a;
 	//a.sort();

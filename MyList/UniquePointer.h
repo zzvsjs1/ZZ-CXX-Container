@@ -17,7 +17,6 @@ JSTD_START
 template <typename T>
 struct DefaultDelete
 {
-
 	constexpr DefaultDelete() noexcept = default;
 
 	template <typename ValT, typename = require<STD is_convertible<ValT*, T*>>>
@@ -80,23 +79,22 @@ public:
 		"unique_ptr's deleter type must be a function object type"
 		" or an lvalue reference type");
 
-	UniqPtrDataImpl() = default;
+	UniqPtrDataImpl() 
+		: mPair(Zero_Then_Variadic_Args_T{})
+	{ }
 
 	UniqPtrDataImpl(pointer p)
-		: mTupleForPointerAndDeleter()
-	{
-		getPtr() = p;
-	}
+		: mPair(Zero_Then_Variadic_Args_T{}, p)
+	{ }
 
 	template <typename Del>
 	UniqPtrDataImpl(pointer p, Del&& d)
-		: mTupleForPointerAndDeleter(p, STD forward<Del>(d)) { }
+		: mPair(One_Then_Variadic_Args_T{}, STD move(d), p)
+	{ }
 
 	UniqPtrDataImpl(UniqPtrDataImpl&& other) noexcept
-		: mTupleForPointerAndDeleter(STD move(other.mTupleForPointerAndDeleter))
-	{
-		other.mTupleForPointerAndDeleter = nullptr;
-	}
+		: mPair(One_Then_Variadic_Args_T{}, STD forward<D>(other.getDeleter()), STD move(other.release()))
+	{ }
 
 	UniqPtrDataImpl& operator=(UniqPtrDataImpl&& other) noexcept
 	{
@@ -133,27 +131,27 @@ public:
 
 	pointer& getPtr()
 	{
-		return STD get<0>(mTupleForPointerAndDeleter);
+		return mPair.second;
 	}
 
 	pointer getPtr() const
 	{
-		return STD get<0>(mTupleForPointerAndDeleter);
+		return mPair.second;
 	}
 
 	D& getDeleter()
 	{
-		return STD get<1>(mTupleForPointerAndDeleter);
+		return mPair.first();
 	}
 
 	const D& getDeleter() const
 	{
-		return STD get<1>(mTupleForPointerAndDeleter);
+		return mPair.first();
 	}
 
 private:
 
-	STD tuple<pointer, D> mTupleForPointerAndDeleter;
+	CompressedPair<D, pointer> mPair;
 
 };
 
@@ -210,8 +208,8 @@ private:
 	template <typename ValT, typename DelT>
 	using safe_conversion_valt =
 		STD conjunction<
-		STD is_convertible<typename UniquePtr<ValT, DelT>::pointer, pointer>,
-		STD negation<STD is_array<ValT>>
+		STD is_convertible<typename UniquePtr<ValT, DelT>::pointer, pointer>, // Can convert to pointer.
+		STD negation<STD is_array<ValT>> // Is not an array.
 		>;
 
 public:
@@ -221,7 +219,7 @@ public:
 		: ptrData()
 	{ }
 
-	template<typename Del = D, typename = DeleterConstraint<Del>>
+	template <typename Del = D, typename = DeleterConstraint<Del>>
 	explicit UniquePtr(pointer ptr) noexcept
 		: ptrData(ptr)
 	{ }
@@ -237,10 +235,10 @@ public:
 		: ptrData(ptr, STD move(del))
 	{ }
 
-	template<typename Del = deleter_type, typename DelUnref = typename STD remove_reference_t<Del>>
+	template <typename Del = deleter_type, typename DelUnref = typename STD remove_reference_t<Del>>
 	UniquePtr(pointer, STD enable_if_t<STD is_lvalue_reference_v<Del>, DelUnref&&>) = delete;
 
-	template<typename ValT, typename DelT, typename = require<
+	template <typename ValT, typename DelT, typename = require<
 		safe_conversion_valt<ValT, DelT>,
 		STD conditional_t<STD is_reference_v<D>,
 		STD is_same<DelT, D>,
@@ -266,10 +264,15 @@ public:
 		ptr = pointer();
 	}
 
+	UniquePtr& operator=(UniquePtr&& other) = default;
+
 	template <typename ValT, typename DelT>
-	typename STD enable_if_t<STD conjunction_v<
-		safe_conversion_valt<ValT, DelT>,
-		STD is_assignable<deleter_type&, DelT&&>, UniquePtr&>
+	STD enable_if_t<
+		STD conjunction_v<
+			safe_conversion_valt<ValT, DelT>,
+			STD is_assignable<deleter_type&, DelT&&>
+		>,
+		UniquePtr&
 	>
 		operator=(UniquePtr<ValT, DelT>&& other) noexcept
 	{
@@ -277,8 +280,6 @@ public:
 		get_deleter() = STD forward<DelT>(other.get_deleter());
 		return *this;
 	}
-
-	UniquePtr& operator=(UniquePtr&&) = default;
 
 	UniquePtr& operator=(STD nullptr_t) noexcept
 	{
@@ -337,14 +338,125 @@ public:
 template <typename T, typename D>
 class UniquePtr<T[], D>
 {
+private:
+
+	template <typename U>
+	using DeleterConstraint = typename UniqPtrDataImpl<T, U>::DeleterConstraint::type;
+
+	template <typename U>
+	using IsDerivedT = STD conjunction<STD is_base_of<T, U>, STD negation<STD is_same<STD remove_cv_t<T>, STD remove_cv_t<U>>>>;
+
+
 public:
-	UniquePtr();
-	~UniquePtr();
+
+	using pointer = typename UniqPtrDataImpl<T, D>::pointer;
+	using element_type = T;
+	using deleter_type = D;
+
+	template <typename Del = D, typename = DeleterConstraint<Del>>
+	constexpr UniquePtr() noexcept
+		: ptrData()
+	{ }
+
+	~UniquePtr()
+	{
+		auto& ptr = ptrData.getPtr();
+		if (ptr)
+		{
+			get_deleter()(ptr);
+			ptr = pointer();
+		}
+	}
+
+	UniquePtr& operator=(UniquePtr&&) = default;
+
+
+	// Disable copy from lvalue.
+	UniquePtr(const UniquePtr&) = delete;
+
+	UniquePtr& operator=(const UniquePtr&) = delete;
+
+	STD add_lvalue_reference_t<element_type> operator[](STD size_t n) const
+	{
+		return get()[n];
+	}
+
+	pointer get() const noexcept
+	{
+		return ptrData.getPtr();
+	}
+
+	deleter_type& get_deleter() noexcept
+	{
+		return ptrData.getDeleter();
+	}
+
+	const deleter_type& get_deleter() const noexcept
+	{
+		return ptrData.getDeleter();
+	}
+
+	explicit operator bool() const noexcept
+	{
+		return get() != pointer();
+	}
+
+	pointer release() noexcept
+	{
+		return ptrData.release();
+	}
+
+	void reset(STD nullptr_t) noexcept
+	{
+
+	}
+
+	void swap(UniquePtr& other) noexcept
+	{
+		static_assert(STD is_swappable_v<D>, "deleter must be swappable");
+		ptrData.swap(other.ptrData);
+	}
 
 private:
 
+	UniqPtrData<T, D> ptrData;
 };
 
+
+
+
+template <typename T>
+struct MakeUniq
+{
+	using SingleObject = UniquePtr<T>;
+};
+
+template <typename T>
+struct MakeUniq<T[]>
+{
+	using Array = UniquePtr<T[]>;
+};
+
+template <typename T, STD size_t Bound>
+struct MakeUniq<T[Bound]>
+{
+	struct InvalidType { };
+};
+
+template <typename T, typename... Args>
+inline typename MakeUniq<T>::SingleObject MakeUnique(Args&&... args)
+{
+	return UniquePtr<T>(new T(STD forward<Args>(args)...));
+}
+
+template <typename T>
+inline typename MakeUniq<T>::Array MakeUnique(STD size_t n)
+{
+	return UniquePtr<T>(new STD remove_extent_t<T>[n]());
+}
+
+template <typename T, typename... Args>
+inline typename MakeUniq<T>::InvalidType MakeUnique(Args&&... args) = delete;
 
 JSTD_END
 

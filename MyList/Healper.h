@@ -32,7 +32,7 @@ using iterator_category_t = typename STD iterator_traits<Iter>::iterator_categor
 /*
 * Check if the data_type is input iterator. 
 * We need to get the iterator_category first, and then
-* check if the tag is inhiread to the std::input_iterator_tag.
+* check if the tag is derived from to the std::input_iterator_tag.
 */
 template <typename Iter>
 using is_input_iter = STD is_convertible<iterator_category_t<Iter>, STD input_iterator_tag>;
@@ -41,7 +41,7 @@ using is_input_iter = STD is_convertible<iterator_category_t<Iter>, STD input_it
 template <typename Iter>
 inline constexpr bool is_input_iter_v = is_input_iter<Iter>::value;
 
-// 
+// Determine if the type is an input iterator.
 template <typename InputIter>
 using RequireInputIter = STD enable_if_t<STD is_convertible_v<iterator_category_t<InputIter>, STD input_iterator_tag>>;
 
@@ -54,8 +54,8 @@ struct is_allocator : STD false_type { };
 
 // 
 template <typename Alloc>
-struct is_allocator <Alloc, 
-	STD void_t<typename Alloc::value_type, decltype(STD declval<Alloc&>().allocate(size_t{})) >>
+struct is_allocator 
+	<Alloc, STD void_t<typename Alloc::value_type, decltype(STD declval<Alloc&>().allocate(size_t{}))>>
 	: STD true_type { };
 
 // A shortcut to get the is_allocator's value.
@@ -69,6 +69,29 @@ using RequireAllocator = STD enable_if_t<is_allocator_v<Alloc>, Alloc>;
 // 
 template <typename Alloc>
 using RequireNotAllocator = STD enable_if_t<!is_allocator_v<Alloc>, Alloc>;
+
+// handle false trait or last trait.
+template <bool First_value, class First, class... Rest>
+struct __Conjunction { 
+	using type = First;
+};
+
+// the first trait is true, try the next one.
+template <class True, class Next, class... Rest>
+struct __Conjunction<true, True, Next, Rest...> { 
+	using type = typename __Conjunction<Next::value, Next, Rest...>::type;
+};
+
+// If Traits is empty, true_type.
+template <class... Traits>
+struct Conjunction : STD true_type { }; 
+
+// the first false trait in Traits, or the last trait if none are false.
+template <class First, class... Rest>
+struct Conjunction<First, Rest...> : __Conjunction<First::value, First, Rest...>::type { };
+
+template <class... Traits>
+inline constexpr bool Conjunction_v = Conjunction<Traits...>::value;
 
 template <typename T>
 constexpr T*
@@ -285,17 +308,16 @@ struct One_Then_Variadic_Args_T {
 }; 
 
 // Store a pair of values, deriving from empty first
-template <class T1, class T2, bool = STD is_empty_v<T1> && !STD is_final_v<T1>>
+template <typename T1, typename T2, bool = STD is_empty_v<T1> && !STD is_final_v<T1>>
 class CompressedPair final : private T1 
 {
-
 public:
 
 	T2 second;
 
-	using MyBase = T1; // for visualization
+	using Base = T1; // for visualization
 
-	template <class... Other2>
+	template <typename... Other2>
 	constexpr explicit CompressedPair(Zero_Then_Variadic_Args_T, Other2&&... value2) 
 		noexcept(
 		STD conjunction_v<STD is_nothrow_default_constructible<T1>, STD is_nothrow_constructible<T2, Other2...>>
@@ -303,7 +325,7 @@ public:
 		: T1(), second(STD forward<Other2>(value2)...) 
 	{ }
 
-	template <class Other1, class... Other2>
+	template <typename Other1, typename... Other2>
 	constexpr CompressedPair(One_Then_Variadic_Args_T, Other1&& value1, Other2&&... value2) 
 		noexcept(
 		STD conjunction_v<STD is_nothrow_constructible<T1, Other1>, STD is_nothrow_constructible<T2, Other2...>>
@@ -320,10 +342,44 @@ public:
 	{
 		return *this;
 	}
-
 };
 
+// Store a pair of values, not deriving from first.
+template <typename T1, typename T2>
+class CompressedPair<T1, T2, false> final 
+{
+public:
 
+	T1 value1;
+
+	T2 value2;
+
+	template <typename... Other2>
+	constexpr explicit CompressedPair(Zero_Then_Variadic_Args_T, Other2&&... otherValues) 
+		noexcept(
+			STD conjunction_v<STD is_nothrow_default_constructible<T1>, STD is_nothrow_constructible<T2, Other2...>>
+			)
+		: value1(), value2(_STD forward<Other2>(otherValues)...) 
+	{ }
+
+	template <typename Other1, typename... Other2>
+	constexpr CompressedPair(One_Then_Variadic_Args_T, Other1&& otherValue1, Other2&&... otherValues2) 
+		noexcept(
+			STD conjunction_v<STD is_nothrow_constructible<T1, Other1>, STD is_nothrow_constructible<T2, Other2...>>
+			)
+		: value1(_STD forward<Other1>(otherValue1)), value2(_STD forward<Other2>(otherValues2)...)
+	{ }
+
+	constexpr T1& first() noexcept 
+	{
+		return value1;
+	}
+
+	constexpr const T1& first() const noexcept
+	{
+		return value1;
+	}
+};
 
 JSTD_END
 
