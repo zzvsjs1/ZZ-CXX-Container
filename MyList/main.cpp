@@ -18,6 +18,7 @@
 #include "Healper.h"
 #include "Memory.h"
 #include "PritorityQueue.h"
+#include "MyForwardList.h"
 
 using std::cin;
 using std::cout;
@@ -97,6 +98,19 @@ std::ostream& operator<<(std::ostream& ostr, Array<T, N> arr)
 	return ostr;
 }
 
+template <typename T, typename Alloc>
+std::ostream& operator<<(std::ostream& ostr, const FList<T, Alloc>& list)
+{
+	for (const auto& i : list)
+	{
+		ostr << i << " ";
+	}
+
+	ostr << endl;
+
+	return ostr;
+}
+
 struct MyStruct
 {
 
@@ -114,14 +128,9 @@ struct MyStruct
 int main()
 {
 	// -Wall
+	FList<string> d = { "cool", "wa" };
 
-	std::unique_ptr<int> a = std::make_unique<int>(10);
-	
-	UniquePtr b = MakeUnique<string>("sdfsdf");
-	UniquePtr c = MakeUnique<int>(9);
-	b = std::move(b);
-
-	cout << *b;
+	cout << d;
 
 	//MyList<string> a;
 	//a.sort();

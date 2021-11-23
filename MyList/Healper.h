@@ -169,6 +169,7 @@ struct MyAlloctTraits : public STD allocator_traits<Alloc>
 	using Base_type::construct;
 	using Base_type::destroy;
 	using Base_type::max_size;
+	using Base_type::is_always_equal;
 
 	// overload construct for non-standard pointer types
 	template <typename ArrayType, typename... Args>

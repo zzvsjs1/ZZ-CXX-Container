@@ -18,7 +18,6 @@ JSTD_START
 template <typename T, typename Container = STD vector<T>, typename Compare = STD less<typename Container::value_type>>
 class PriorityQueue
 {
-
 	static_assert(STD is_same_v<T, typename Container::value_type>, "value_type must be the same as the underlying container");
 
 public:
@@ -182,12 +181,12 @@ template
 <
 	typename Compare, 
 	typename Container, 
-	typename Allocator,
+	typename Alloc,
 	typename = RequireNotAllocator<Compare>,
 	typename = RequireNotAllocator<Container>,
-	typename = RequireAllocator<Allocator>
+	typename = RequireAllocator<Alloc>
 >
-PriorityQueue(Compare, Container, Allocator) -> PriorityQueue<typename Container::value_type, Container, Compare>;
+PriorityQueue(Compare, Container, Alloc) -> PriorityQueue<typename Container::value_type, Container, Compare>;
 
 template<typename T, typename Container, typename Compare> 
 inline typename STD enable_if_t<STD conjunction_v<STD is_swappable<Container>, STD is_swappable<Compare>>>

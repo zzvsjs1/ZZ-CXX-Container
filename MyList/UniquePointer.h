@@ -252,6 +252,8 @@ public:
 		: ptrData()
 	{ }
 
+	UniquePtr(const UniquePtr&) = delete;
+
 	~UniquePtr() noexcept
 	{
 		static_assert(STD is_invocable_v<deleter_type&, pointer>, "unique_ptr's deleter must be invocable with a pointer");
@@ -286,6 +288,8 @@ public:
 		reset();
 		return *this;
 	}
+
+	UniquePtr& operator=(const UniquePtr&) = delete;
 
 	typename STD add_lvalue_reference_t<element_type> operator*() const
 	{
@@ -328,11 +332,6 @@ public:
 		static_assert(STD is_swappable_v<D>, "deleter must be swappable");
 		ptrData.swap(other.ptrData);
 	}
-
-	UniquePtr(const UniquePtr&) = delete;
-
-	UniquePtr& operator=(const UniquePtr&) = delete;
-
 };
 
 template <typename T, typename D>

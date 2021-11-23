@@ -12,7 +12,6 @@ JSTD_START
 template <typename T>
 class AllocatorBase
 {
-
 public:
 
 	using value_type = T;
@@ -90,17 +89,15 @@ public:
 	{
 		return STD addressof(r);
 	}
-
 };
 
 template <typename T>
-class Allocator : public AllocatorBase<T>
+class Alloc : public AllocatorBase<T>
 {
-
 public:
 
 	static_assert(!STD is_const_v<T>, "The C++ Standard forbids containers of const elements "
-		"because allocator<const T> is ill-formed.");
+									  "because allocator<const T> is ill-formed.");
 
 	using value_type = T;
 	using size_type = STD size_t;
@@ -116,47 +113,45 @@ public:
 	template <typename T2>
 	struct rebind
 	{
-		using other = Allocator<T2>;
+		using other = Alloc<T2>;
 	};
 
-	Allocator() = default;
+	Alloc() = default;
 
-	Allocator(const Allocator& other) noexcept
+	Alloc(const Alloc& other) noexcept
 		: AllocatorBase<T>(other) { }
 
-	Allocator& operator=(const Allocator& other) = default;
+	Alloc& operator=(const Alloc& other) = default;
 
 	template <typename T2>
-	Allocator(const Allocator<T2>& other) noexcept { }
+	Alloc(const Alloc<T2>& other) noexcept { }
 
-	~Allocator() = default;
+	~Alloc() = default;
 
-	friend bool operator==(const Allocator&, const Allocator&) noexcept
+	friend bool operator==(const Alloc&, const Alloc&) noexcept
 	{
 		return true;
 	}
 
-	friend bool operator!=(const Allocator&, const Allocator&) noexcept
+	friend bool operator!=(const Alloc&, const Alloc&) noexcept
 	{
 		return false;
 	}
-
 };
 
 template<typename T1, typename T2>
 inline bool
-operator==(const Allocator<T1>&, const Allocator<T2>&) noexcept
+operator==(const Alloc<T1>&, const Alloc<T2>&) noexcept
 {
 	return true;
 }
 
 template<typename T1, typename T2>
 inline bool
-operator!=(const Allocator<T1>&, const Allocator<T2>&) noexcept
+operator!=(const Alloc<T1>&, const Alloc<T2>&) noexcept
 {
 	return false;
 }
-
 
 JSTD_END
 

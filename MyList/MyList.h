@@ -1590,11 +1590,11 @@ template
 <
 	typename InputIterator, 
 	typename ValT = typename STD iterator_traits<InputIterator>::value_type,
-	typename Allocator = STD allocator<ValT>,
+	typename Alloc = STD allocator<ValT>,
 	typename = RequireInputIter<InputIterator>,
-	typename = RequireAllocator<Allocator>
+	typename = RequireAllocator<Alloc>
 >
-MyList(InputIterator, InputIterator, Allocator = Allocator()) -> MyList<ValT, Allocator>;
+MyList(InputIterator, InputIterator, Alloc = Alloc()) -> MyList<ValT, Alloc>;
 
 JSTD_END
 
