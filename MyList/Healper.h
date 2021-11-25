@@ -153,7 +153,6 @@ doAllocMove(Alloc& left, Alloc& right)
 template <typename Alloc, typename = typename Alloc::value_type>
 struct MyAlloctTraits : public STD allocator_traits<Alloc> 
 {
-
 	using allocator_type = Alloc;
 	using Base_type = STD allocator_traits<Alloc>;
 	using value_type = typename Base_type::value_type;
@@ -169,7 +168,6 @@ struct MyAlloctTraits : public STD allocator_traits<Alloc>
 	using Base_type::construct;
 	using Base_type::destroy;
 	using Base_type::max_size;
-	using Base_type::is_always_equal;
 
 	// overload construct for non-standard pointer types
 	template <typename ArrayType, typename... Args>
@@ -308,8 +306,8 @@ struct One_Then_Variadic_Args_T {
 	explicit One_Then_Variadic_Args_T() = default;
 }; 
 
-// Store a pair of values, deriving from empty first
-template <typename T1, typename T2, bool = STD is_empty_v<T1> && !STD is_final_v<T1>>
+// Store a pair of values, deriving from empty first.
+template <typename T1, typename T2, bool = STD conjunction_v<STD is_empty<T1>, STD negation<STD is_final<T1>>>>
 class CompressedPair final : private T1 
 {
 public:
@@ -345,7 +343,7 @@ public:
 	}
 };
 
-// Store a pair of values, not deriving from first.
+// Store a pair of values, not deriving from first, because the first one is not empty.
 template <typename T1, typename T2>
 class CompressedPair<T1, T2, false> final 
 {
@@ -360,7 +358,7 @@ public:
 		noexcept(
 			STD conjunction_v<STD is_nothrow_default_constructible<T1>, STD is_nothrow_constructible<T2, Other2...>>
 			)
-		: value1(), value2(_STD forward<Other2>(otherValues)...) 
+		: value1(), value2(STD forward<Other2>(otherValues)...) 
 	{ }
 
 	template <typename Other1, typename... Other2>
@@ -368,7 +366,7 @@ public:
 		noexcept(
 			STD conjunction_v<STD is_nothrow_constructible<T1, Other1>, STD is_nothrow_constructible<T2, Other2...>>
 			)
-		: value1(_STD forward<Other1>(otherValue1)), value2(_STD forward<Other2>(otherValues2)...)
+		: value1(STD forward<Other1>(otherValue1)), value2(STD forward<Other2>(otherValues2)...)
 	{ }
 
 	constexpr T1& first() noexcept 
@@ -383,6 +381,5 @@ public:
 };
 
 JSTD_END
-
 
 #endif //UTILITY

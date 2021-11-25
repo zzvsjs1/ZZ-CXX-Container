@@ -192,7 +192,7 @@ public:
 		mSize = 0;
 	}
 
-	void doReverse() noexcept
+	void reverseAfter() noexcept
 	{
 		STD swap(mNext, mPrev);
 
@@ -1386,7 +1386,7 @@ public:
 
 	void reverse() noexcept
 	{
-		mImpl.mHeader.doReverse();
+		mImpl.mHeader.reverseAfter();
 	}
 
 	size_type unique()

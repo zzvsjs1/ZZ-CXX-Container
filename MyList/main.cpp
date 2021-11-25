@@ -129,6 +129,7 @@ int main()
 {
 	// -Wall
 	FList<string> d = { "cool", "wa" };
+	d.reverse();
 
 	cout << d;
 

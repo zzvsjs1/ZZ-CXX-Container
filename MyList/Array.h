@@ -171,7 +171,7 @@ public:
         return N;
     }
 
-    [[nodiscard]] constexpr bool empty() const noexcept 
+    NODISCARD constexpr bool empty() const noexcept 
     { 
         return size() == 0; 
     }

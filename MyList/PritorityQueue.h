@@ -1,10 +1,9 @@
 #pragma once
-#ifndef PRITORITYQUEUE
-#define PRITORITYQUEUE
+#ifndef PRITORITY_QUEUE
+#define PRITORITY_QUEUE
 
 #include <algorithm>
 #include <memory>
-#include <cassert>
 #include <iterator>
 #include <type_traits>
 #include <initializer_list>
@@ -108,17 +107,17 @@ public:
 
 	~PriorityQueue() = default;
 
-	[[nodiscard]] bool empty() const
+	NODISCARD bool empty() const
 	{
 		return container.empty();
 	}
 
-	[[nodiscard]] size_type size() const
+	NODISCARD size_type size() const
 	{
 		return container.size();
 	}
 
-	[[nodiscard]] const_reference top() const
+	NODISCARD const_reference top() const
 	{
 		return container.front();
 	}
@@ -197,4 +196,4 @@ swap(PriorityQueue<T, Container, Compare>& left, PriorityQueue<T, Container, Com
 
 JSTD_END
 
-#endif // !PRITORITYQUEUE
+#endif // !PRITORITY_QUEUE

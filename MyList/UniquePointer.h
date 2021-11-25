@@ -1,6 +1,6 @@
 #pragma once
-#ifndef UNIQUEPOINTER
-#define UNIQUEPOINTER
+#ifndef UNIQUE_POINTER
+#define UNIQUE_POINTER
 
 #include <type_traits>
 #include <limits>
@@ -28,7 +28,6 @@ struct DefaultDelete
 		static_assert(sizeof(T) > 0, "can't delete pointer to incomplete type");
 		delete ptr;
 	}
-
 };
 
 template <typename T>
@@ -52,12 +51,13 @@ struct DefaultDelete<T[]>
 		static_assert(sizeof(T) > 0, "can't delete pointer to incomplete type");
 		delete[] ptr;
 	}
-
 };
 
 template <typename T, typename D>
 class UniqPtrDataImpl
 {
+protected:
+
 	template <typename ValT, typename DelT, typename = void>
 	struct Ptr
 	{
@@ -163,7 +163,6 @@ struct UniqPtrData : UniqPtrDataImpl<T, D>
 	UniqPtrData(UniqPtrData&&) = default;
 
 	UniqPtrData& operator=(UniqPtrData&&) = default;
-
 };
 
 template <typename T, typename D>
@@ -174,7 +173,6 @@ struct UniqPtrData<T, D, false, true> : UniqPtrDataImpl<T, D>
 	UniqPtrData(UniqPtrData&&) = delete;
 
 	UniqPtrData& operator=(UniqPtrData&&) = default;
-
 };
 
 template <typename T, typename D>
@@ -185,12 +183,12 @@ struct UniqPtrData<T, D, false, false> : UniqPtrDataImpl<T, D>
 	UniqPtrData(UniqPtrData&&) = delete;
 
 	UniqPtrData& operator=(UniqPtrData&&) = delete;
-
 };
 
 template <typename T, typename D = DefaultDelete<T>>
 class UniquePtr
 {
+private:
 
 	template <typename DelT>
 	using DeleterConstraint = typename UniqPtrDataImpl<T, DelT>::DeleterConstraint::type;
@@ -459,4 +457,4 @@ inline typename MakeUniq<T>::InvalidType MakeUnique(Args&&... args) = delete;
 
 JSTD_END
 
-#endif // !UNIQUEPOINTER
+#endif // !UNIQUE_POINTER

@@ -1,18 +1,12 @@
 #pragma once
-#ifndef FLIST
-#define FLIST
+#ifndef F_LIST
+#define F_LIST
 
 #include <algorithm>
-#include <array>
-#include <cassert>
 #include <memory>
-#include <cassert>
 #include <iterator>
 #include <type_traits>
 #include <initializer_list>
-#include <stdexcept>
-#include <vector>
-#include <list>
 
 #include "Healper.h"
 
@@ -20,7 +14,6 @@ JSTD_START
 
 class FListNodeBase
 {
-
 public:
 
 	FListNodeBase() = default;
@@ -35,17 +28,22 @@ public:
 
 	FListNodeBase& operator=(const FListNodeBase&) = delete;
 
-	FListNodeBase& operator=(FListNodeBase&& ohter) noexcept
+	FListNodeBase& operator=(FListNodeBase&& other) noexcept
 	{
-
+		mNext = other.mNext;
+		other.mNext = nullptr;
 		return *this;
 	}
 
 	~FListNodeBase() = default;
 
+	/*
+	* Link (first, last] to this node.
+	*/
 	FListNodeBase* linkFirstToNext(FListNodeBase* const first, FListNodeBase* const last) noexcept
 	{
 		auto* const temp = first->mNext;
+		// If last
 		if (last)
 		{
 			first->mNext = last->mNext;
@@ -67,10 +65,17 @@ public:
 			return;
 		}
 
-		auto* newTail = mNext;
-		while (auto* nextNext = newTail->mNext)
-		{
 
+
+		FListNodeBase* __tail = mNext;
+		if (!__tail)
+			return;
+		while (FListNodeBase* __temp = __tail->mNext)
+		{
+			FListNodeBase* __keep = mNext;
+			mNext = __temp;
+			__tail->mNext = __temp->mNext;
+			mNext->mNext = __keep;
 		}
 	}
 
@@ -279,7 +284,6 @@ public:
 template <typename T, typename Alloc>
 class FListBase
 {
-
 protected:
 
 	using T_Alloc_Type = typename MyAlloctTraits<Alloc>:: template rebind<T>::other;
@@ -391,6 +395,10 @@ protected:
 		resetHeader();
 	}
 
+	void reverseFromHead() noexcept
+	{
+		mImpl.mHead.reverseAfter();
+	}
 };
 
 template <typename T, typename Alloc = STD allocator<T>>
@@ -499,9 +507,9 @@ private:
 	{ }
 
 	FList(FList&& other, const Node_Alloc_Type&& alloc, STD false_type)
-		: Base(STD move(other), STD move(alloc))
+		: Base(STD move(other), Node_Alloc_Type(STD move(alloc)))
 	{
-
+		
 	}
 
 public:
@@ -581,13 +589,13 @@ public:
 
 	void assign(size_type count, const value_type& value)
 	{
-		doAssign(count, value, STD is_copy_assignable_v<value_type>);
+		doAssign(count, value, STD is_copy_assignable<value_type>{});
 	}
 
 	template <typename InputIt, typename = RequireInputIter<InputIt>>
 	void assign(InputIt first, InputIt last)
 	{
-		doAssign(first, last, STD is_copy_assignable_v<value_type>);
+		doAssign(first, last, STD is_copy_assignable<value_type>{});
 	}
 
 	void assign(STD initializer_list<value_type> ilist)
@@ -602,27 +610,27 @@ public:
 
 	reference front()
 	{
-		return *mImpl.mHead.mNext;
+		return static_cast<Node*>(mImpl.mHead.mNext)->getValRef();
 	}
 
 	const_reference front() const
 	{
-		return *mImpl.mHead.mNext;
+		return static_cast<Node*>(mImpl.mHead.mNext)->getValRef();
 	}
 
 	iterator before_begin() noexcept
 	{
-		return iterator(mImpl.mHead);
+		return iterator(&mImpl.mHead);
 	}
 
 	const_iterator before_begin() const noexcept
 	{
-		return const_iterator(mImpl.mHead);
+		return const_iterator(&mImpl.mHead);
 	}
 
 	const_iterator cbefore_begin() const noexcept
 	{
-		return const_iterator(mImpl.mHead);
+		return const_iterator(&mImpl.mHead);
 	}
 
 	iterator begin() noexcept
@@ -679,7 +687,7 @@ private:
 		Node* newOne = createNode(STD forward<Args>(args)...);
 		newOne->mNext = node->mNext;
 		node->mNext = newOne;
-		return iterator(node->mNext); // If 
+		return iterator(newOne); // If 
 	}
 
 
@@ -724,7 +732,7 @@ public:
 	template <typename... Args>
 	iterator emplace_after(const_iterator pos, Args&&... args)
 	{
-
+		return static_cast<Node*>(insertAfter(pos, STD forward<Args>(args)...).mNode).getValRef();
 	}
 
 	iterator erase_after(const_iterator pos)
@@ -748,9 +756,9 @@ public:
 	}
 
 	template <typename... Args>
-	reference emplace_front(Args&&... args);
+	reference emplace_front(Args&&... args)
 	{
-		return *insertAfter(before_begin(), STD forward<Args>(args)...);
+		return static_cast<Node*>(insertAfter(before_begin(), STD forward<Args>(args)...).mNode).getValRef();
 	}
 
 	void pop_front() noexcept
@@ -791,6 +799,7 @@ private:
 		FListNodeBase* start = first.constCastPtr();
 		FListNodeBase* end = start;
 
+		// 
 		while (end && end->mNext != last.mNode)
 		{
 			end = end->mNext;
@@ -813,7 +822,7 @@ public:
 			return;
 		}
 
-		spliceAfterPost(pos, other.before_begin(), other.end();
+		spliceAfterPost(pos, other.before_begin(), other.end());
 	}
 
 	void splice_after(const_iterator pos, FList& other, const_iterator it) noexcept
@@ -823,7 +832,7 @@ public:
 
 	void splice_after(const_iterator pos, FList&& other, const_iterator it) noexcept
 	{
-
+		
 	}
 
 	void splice_after(const_iterator pos, FList& other, const_iterator first, const_iterator last) noexcept
@@ -865,7 +874,7 @@ public:
 
 	void reverse() noexcept
 	{
-
+		mImpl.mHead.reverseAfter();
 	}
 
 	size_type unique()
@@ -972,4 +981,4 @@ inline erase_if(FList<T, Alloc>& c, Pred pred)
 
 JSTD_END
 
-#endif // !FLIST
+#endif // !F_LIST
