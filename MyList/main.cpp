@@ -127,10 +127,8 @@ struct MyStruct
 
 int main()
 {
-	// -Wall
-	FList<string> d = { "cool", "wa" };
-	d.reverse();
-
+	FList<string> d = { "cool", "wa" , "sdfsdfsd", "dfghfghfghfghg"};
+	d.erase_after(++d.before_begin(), d.end());
 	cout << d;
 
 	//MyList<string> a;

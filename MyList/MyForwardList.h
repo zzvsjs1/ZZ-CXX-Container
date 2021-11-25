@@ -7,6 +7,7 @@
 #include <iterator>
 #include <type_traits>
 #include <initializer_list>
+#include <string>
 
 #include "Healper.h"
 
@@ -40,21 +41,22 @@ public:
 	/*
 	* Link (first, last] to this node.
 	*/
-	FListNodeBase* linkFirstToNext(FListNodeBase* const first, FListNodeBase* const last) noexcept
+	FListNodeBase* linkFistPlusOneToLastAfterThis(FListNodeBase* const first, FListNodeBase* const last) noexcept
 	{
-		auto* const temp = first->mNext;
-		// If last
+		auto* const newNext = first->mNext;
+		// If last != nullptr.
 		if (last)
 		{
 			first->mNext = last->mNext;
 			last->mNext = mNext;
 		}
+		// If last == nullptr.
 		else
 		{
 			first->mNext = nullptr;
 		}
 
-		mNext = temp;
+		mNext = newNext;
 		return last;
 	}
 
@@ -65,17 +67,13 @@ public:
 			return;
 		}
 
-
-
-		FListNodeBase* __tail = mNext;
-		if (!__tail)
-			return;
-		while (FListNodeBase* __temp = __tail->mNext)
+		auto* const newTail = mNext;
+		while (auto* nextNext = newTail->mNext)
 		{
-			FListNodeBase* __keep = mNext;
-			mNext = __temp;
-			__tail->mNext = __temp->mNext;
-			mNext->mNext = __keep;
+			auto* const temp = mNext;
+			mNext = nextNext;
+			newTail->mNext = nextNext->mNext;
+			mNext->mNext = temp;
 		}
 	}
 
@@ -208,6 +206,8 @@ public:
 template <typename T>
 class FListConstIterator
 {
+private:
+
 	using Self = FListConstIterator<T>;
 	using Node = const FListNode<T>;
 	using iterator = FListIterator<T>;
@@ -399,6 +399,13 @@ protected:
 	{
 		mImpl.mHead.reverseAfter();
 	}
+
+	void destroyNode(FListNodeBase* node) noexcept
+	{
+		Node* originNode = static_cast<Node*>(node);
+		Node_Alloc_Traits::destroy(mImpl, originNode);
+		deallocateNode(originNode);
+	}
 };
 
 template <typename T, typename Alloc = STD allocator<T>>
@@ -465,7 +472,6 @@ private:
 		}
 	}
 	
-
 public:
 
 	FList(size_type count, const value_type& value, const Alloc& alloc = Alloc())
@@ -550,6 +556,10 @@ public:
 
 	FList& operator=(FList&& other) noexcept(Node_Alloc_Traits::nothrow_move())
 	{
+		if (this != STD addressof(other))
+		{
+
+		}
 
 		return *this;
 	}
@@ -683,13 +693,29 @@ private:
 	template <typename... Args>
 	iterator insertAfter(const_iterator pos, Args&&... args)
 	{
-		FListNodeBase* node = const_cast<FListNodeBase*>(pos.mNode);
-		Node* newOne = createNode(STD forward<Args>(args)...);
+		auto* const node = pos.constCastPtr();
+		auto* const newOne = createNode(STD forward<Args>(args)...);
 		newOne->mNext = node->mNext;
 		node->mNext = newOne;
-		return iterator(newOne); // If 
+		return iterator(newOne);
 	}
 
+	iterator spliceAfterPost(const_iterator pos, const_iterator first, const_iterator last) noexcept
+	{
+		FListNodeBase* position = pos.constCastPtr();
+		FListNodeBase* start = first.constCastPtr();
+		FListNodeBase* end = start;
+
+		// Get the new end before the last.
+		while (end && end->mNext != last.mNode)
+		{
+			end = end->mNext;
+		}
+
+		return start != end 
+			? iterator(position->linkFistPlusOneToLastAfterThis(start, end)) 
+			: iterator(position);
+	}
 
 public:
 
@@ -707,10 +733,11 @@ public:
 	{
 		if (!count)
 		{
-			return iterator(const_cast<NodeBase*>(pos.mNode));
+			return iterator(pos.constCastPtr());
 		}
 
-
+		FList temp(count, value, get_allocator());
+		return spliceAfterPost(pos, temp.before_begin(), temp.end());
 	}
 
 	template <typename InputIt, typename = RequireInputIter<InputIt>>
@@ -721,7 +748,13 @@ public:
 			return iterator(const_cast<NodeBase*>(pos.mNode));
 		}
 
+		FList temp(first, last, get_allocator());
+		if (temp.empty())
+		{
+			return iterator(pos.constCast());
+		}
 
+		return spliceAfterPost(pos, temp.before_begin(), temp.end());
 	}
 
 	iterator insert_after(const_iterator pos, STD initializer_list<T> ilist)
@@ -735,14 +768,35 @@ public:
 		return static_cast<Node*>(insertAfter(pos, STD forward<Args>(args)...).mNode).getValRef();
 	}
 
+private:
+
+
+
+
+public:
+
 	iterator erase_after(const_iterator pos)
 	{
-
+		auto* const cur = pos.constCastPtr();
+		auto* const toErase = pos.constCastPtr()->mNext;
+		cur->mNext = toErase->mNext;
+		this->destroyNode(toErase);
+		return iterator(cur->mNext);
 	}
 
 	iterator erase_after(const_iterator first, const_iterator last)
 	{
+		auto* cur = first.constCastPtr()->mNext;
+		auto* const lastPtr = last.constCastPtr();
+		while (cur != lastPtr)
+		{
+			auto* const toDelete = cur;
+			cur = cur->mNext;
+			this->destroyNode(toDelete);
+		}
 
+		first.constCastPtr()->mNext = lastPtr;
+		return iterator(lastPtr);
 	}
 
 	void push_front(const T& value)
@@ -768,6 +822,7 @@ public:
 
 	void resize(size_type count)
 	{
+		
 	}
 
 	void resize(size_type count, const value_type& value)
@@ -781,32 +836,28 @@ public:
 		Node_Alloc_Traits::doSwap(this->getNodeAllocator(), other.getNodeAllocator());
 	}
 
-	void merge(FList& other);
-
-	void merge(FList&& other);
-
-	template <typename Compare>
-	void merge(FList& other, Compare comp);
-
-	template <typename Compare>
-	void merge(FList&& other, Compare comp);
-
-private:
-
-	iterator spliceAfterPost(const_iterator pos, const_iterator first, const_iterator last) noexcept
+	void merge(FList& other)
 	{
-		FListNodeBase* position = pos.constCastPtr();
-		FListNodeBase* start = first.constCastPtr();
-		FListNodeBase* end = start;
 
-		// 
-		while (end && end->mNext != last.mNode)
-		{
-			end = end->mNext;
-		}
-
-		return start != end ? iterator(position->linkFirstToNext(start, end)) : iterator(position);
 	}
+
+	void merge(FList&& other)
+	{
+
+	}
+
+	template <typename Compare>
+	void merge(FList& other, Compare comp)
+	{
+
+	}
+
+	template <typename Compare>
+	void merge(FList&& other, Compare comp)
+	{
+
+	}
+
 
 public:
 
@@ -888,6 +939,16 @@ public:
 
 	}
 
+private:
+
+	template <typename Compare>
+	void gccSort(Compare& comp)
+	{
+
+	}
+
+public:
+
 	void sort()
 	{
 		sort(STD less<value_type>{});
@@ -896,7 +957,7 @@ public:
 	template <typename Compare>
 	void sort(Compare comp)
 	{
-		
+		gccSort(comp);
 	}
 
 };

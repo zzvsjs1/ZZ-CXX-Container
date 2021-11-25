@@ -158,11 +158,13 @@
     <ClInclude Include="MyForwardList.h" />
     <ClInclude Include="MyIterator.h" />
     <ClInclude Include="MyList.h" />
+    <ClInclude Include="Pair.h" />
     <ClInclude Include="PritorityQueue.h" />
     <ClInclude Include="Queue.h" />
     <ClInclude Include="SharePointer.h" />
     <ClInclude Include="String.h" />
     <ClInclude Include="UniquePointer.h" />
+    <ClInclude Include="Utility.h" />
     <ClInclude Include="Vector.h" />
   </ItemGroup>
   <ItemGroup>

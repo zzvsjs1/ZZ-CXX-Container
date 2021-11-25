@@ -1,6 +1,6 @@
 #pragma once
-#ifndef UTILITY
-#define UTILITY
+#ifndef HELPER
+#define HELPER
 
 #include <type_traits>
 #include <memory>
@@ -382,4 +382,4 @@ public:
 
 JSTD_END
 
-#endif //UTILITY
+#endif // HELPER

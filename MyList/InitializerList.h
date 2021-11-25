@@ -2,6 +2,7 @@
 #ifndef INITIALIZER_LIST
 #define INITIALIZER_LIST
 
+#include <initializer_list>
 #include <cstddef>
 
 #include "Healper.h"
@@ -15,7 +16,9 @@ public:
     using value_type = T;
     using reference = const T&;
     using const_reference = const T&;
-    using size_type = size_t;
+    using size_type = STD size_t;
+    using pointer = T*;
+    using const_pointer = const T*;
 
     using iterator = const T*;
     using const_iterator = const T*;
@@ -24,16 +27,20 @@ public:
         : first(), last() 
     { }
 
-    constexpr InitializerList(const T* firstArg, const T* lastArg) noexcept
+    constexpr InitializerList(const value_type* firstArg, const value_type* lastArg) noexcept
         : first(firstArg), last(lastArg) 
     { }
 
-    NODISCARD constexpr const T* begin() const noexcept 
+    constexpr InitializerList(const STD initializer_list<value_type>& ilist) noexcept
+        : first(STD addressof(*ilist.begin())), last(STD addressof(*ilist.end()))
+    { }
+
+    NODISCARD constexpr const pointer begin() const noexcept
     {
         return first;
     }
 
-    NODISCARD constexpr const T* end() const noexcept 
+    NODISCARD constexpr const pointer end() const noexcept
     {
         return last;
     }
@@ -44,8 +51,8 @@ public:
     }
 
 private:
-    const value_type* first;
-    const value_type* last;
+    const pointer first;
+    const pointer last;
 };
 
 template <typename T>
