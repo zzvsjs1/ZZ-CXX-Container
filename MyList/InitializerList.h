@@ -27,7 +27,7 @@ public:
         : first(), last() 
     { }
 
-    constexpr InitializerList(const value_type* firstArg, const value_type* lastArg) noexcept
+    constexpr InitializerList(const pointer firstArg, const pointer lastArg) noexcept
         : first(firstArg), last(lastArg) 
     { }
 

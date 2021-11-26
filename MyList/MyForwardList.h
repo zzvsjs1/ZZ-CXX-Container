@@ -100,22 +100,22 @@ public:
 
 	~FListNode() = default;
 
-	T* getValPtr() noexcept
+	NODISCARD T* getValPtr() noexcept
 	{
 		return STD addressof(actualData);
 	}
 
-	const T* getValPtr() const noexcept
+	NODISCARD const T* getValPtr() const noexcept
 	{
 		return STD addressof(actualData);
 	}
 
-	T& getValRef() noexcept
+	NODISCARD T& getValRef() noexcept
 	{
 		return actualData;
 	}
 
-	const T& getValRef() const noexcept
+	NODISCARD const T& getValRef() const noexcept
 	{
 		return actualData;
 	}
@@ -151,12 +151,12 @@ public:
 		: mNode(node)
 	{}
 
-	iterator constCast() const noexcept
+	NODISCARD iterator constCast() const noexcept
 	{
 		return *this;
 	}
 
-	FListNodeBase* constCastPtr() const noexcept
+	NODISCARD FListNodeBase* constCastPtr() const noexcept
 	{
 		return static_cast<FListNodeBase*>(mNode);
 	}
@@ -194,7 +194,7 @@ public:
 		return left.mNode != right.mNode;
 	}
 
-	Self next() const noexcept
+	NODISCARD Self next() const noexcept
 	{
 		return mNode ? Self(mNode->mNext) : Self(nullptr);
 	}
@@ -229,12 +229,12 @@ public:
 	FListConstIterator(const iterator& iter) noexcept
 		: mNode(iter.mNode) { }
 
-	iterator constCast() const noexcept
+	NODISCARD iterator constCast() const noexcept
 	{
 		return iterator(const_cast<FListNodeBase*>(mNode));
 	}
 
-	FListNodeBase* constCastPtr() const noexcept
+	NODISCARD FListNodeBase* constCastPtr() const noexcept
 	{
 		return const_cast<FListNodeBase*>(mNode);
 	}
@@ -613,7 +613,7 @@ public:
 		assign(ilist.begin(), ilist.end());
 	}
 
-	allocator_type get_allocator() const noexcept
+	NODISCARD allocator_type get_allocator() const noexcept
 	{
 		return allocator_type();
 	}
@@ -623,7 +623,7 @@ public:
 		return static_cast<Node*>(mImpl.mHead.mNext)->getValRef();
 	}
 
-	const_reference front() const
+	NODISCARD const_reference front() const
 	{
 		return static_cast<Node*>(mImpl.mHead.mNext)->getValRef();
 	}
@@ -633,12 +633,12 @@ public:
 		return iterator(&mImpl.mHead);
 	}
 
-	const_iterator before_begin() const noexcept
+	NODISCARD const_iterator before_begin() const noexcept
 	{
 		return const_iterator(&mImpl.mHead);
 	}
 
-	const_iterator cbefore_begin() const noexcept
+	NODISCARD const_iterator cbefore_begin() const noexcept
 	{
 		return const_iterator(&mImpl.mHead);
 	}
@@ -648,12 +648,12 @@ public:
 		return iterator(mImpl.mHead.mNext);
 	}
 
-	const_iterator begin() const noexcept
+	NODISCARD const_iterator begin() const noexcept
 	{
 		return const_iterator(mImpl.mHead.mNext);
 	}
 
-	const_iterator cbegin() const noexcept
+	NODISCARD const_iterator cbegin() const noexcept
 	{
 		return const_iterator(mImpl.mHead.mNext);
 	}
@@ -663,12 +663,12 @@ public:
 		return iterator(nullptr);
 	}
 
-	const_iterator end() const noexcept
+	NODISCARD const_iterator end() const noexcept
 	{
 		return iterator(nullptr);
 	}
 
-	const_iterator cend() const noexcept
+	NODISCARD const_iterator cend() const noexcept
 	{
 		return iterator(nullptr);
 	}
@@ -898,7 +898,7 @@ public:
 
 	size_type remove(const value_type& value)
 	{
-		remove_if([&](auto& e) { return e == value; });
+		return remove_if([&](const auto& e) { return e == value; });
 	}
 
 	template <typename UnaryPredicate>
@@ -959,7 +959,6 @@ public:
 	{
 		gccSort(comp);
 	}
-
 };
 
 template <
@@ -1026,14 +1025,14 @@ inline void swap(FList<T, Alloc>& lhs, FList<T, Alloc>& rhs) noexcept(noexcept(l
 	lhs.swap(rhs);
 }
 
-template< typename T, typename Alloc, typename U >
+template< typename T, typename Alloc, typename U>
 typename FList<T, Alloc>::size_type
 inline erase(FList<T, Alloc>& c, const U& value)
 {
 	return c.remove_if([&](auto& element) { return element == value; });
 }
 
-template< typename T, typename Alloc, typename Pred >
+template< typename T, typename Alloc, typename Pred>
 typename FList<T, Alloc>::size_type 
 inline erase_if(FList<T, Alloc>& c, Pred pred)
 {

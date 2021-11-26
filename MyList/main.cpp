@@ -131,45 +131,6 @@ int main()
 	d.erase_after(++d.before_begin(), d.end());
 	cout << d;
 
-	//MyList<string> a;
-	//a.sort();
-
-	//vector v = { 5, 9, 6, 7, 1, 2, 3 };
-
-	//PriorityQueue<int> pq{v.begin(), v.end()};
-
-	//cout << pq;
-
-	//MyList<string> a;
-	////list<string> a;
-	//auto c = "cool";
-
-	//const auto start = std::chrono::steady_clock::now();
-	//for (size_t i = 0; i < 100000; i++)
-	//{
-	//	a.emplace_back(c);
-	//}
-	//const auto end = std::chrono::steady_clock::now();
-	//std::chrono::duration<double> elapsed_seconds = end - start;
-	//std::cout << "elapsed time: " << elapsed_seconds.count() << "s\n";
-
-	//list<MyStruct> c(3, 5);
-
-	//MyList<list<string>, Allocator<list<string>>> g = { {"a", "b"}, {"a", "b"} };
-
-	//MyList<list<string>, Allocator<list<string>>> k = { {"a", "b"}, {"a", "b"} };
-
-	//g = std::move(k);
-
-	//cout << g;
-
-	/*ListBase<MyStruct, std::allocator<MyStruct>>::Node_Alloc_Type a;
-
-	auto* v = ListBase<MyStruct, std::allocator<MyStruct>>::Node_Alloc_Traits::allocate(a, 1);*/
-
-	//ListBase<MyStruct, std::allocator<MyStruct>>::Node_Alloc_Traits::construct(a, v, 5);
-
-
 
 	return 0;
 }
