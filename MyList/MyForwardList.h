@@ -81,15 +81,11 @@ public:
 
 };
 
-struct DataInitTagT
-{
-	DataInitTagT() = default;
-};
+struct DataInitTagT { };
 
 template <typename T>
 class FListNode : public FListNodeBase
 {
-
 public:
 
 	FListNode() = default;
@@ -158,7 +154,7 @@ public:
 
 	NODISCARD FListNodeBase* constCastPtr() const noexcept
 	{
-		return static_cast<FListNodeBase*>(mNode);
+		return mNode;
 	}
 
 	reference operator*() const noexcept
@@ -194,7 +190,7 @@ public:
 		return left.mNode != right.mNode;
 	}
 
-	NODISCARD Self next() const noexcept
+	NODISCARD Self getNextNodeIter() const noexcept
 	{
 		return mNode ? Self(mNode->mNext) : Self(nullptr);
 	}
@@ -272,7 +268,7 @@ public:
 		return left.mNode != right.mNode;
 	}
 
-	Self next() const noexcept
+	Self getNext() const noexcept
 	{
 		return mNode ? Self(mNode->mNext) : Self(nullptr);
 	}
@@ -450,7 +446,7 @@ private:
 	template <typename InputIt, typename = RequireInputIter<InputIt>>
 	void rangeConstruct(InputIt first, InputIt last)
 	{
-		for (FListNodeBase* next = &this->mImpl.mHead; first != last; ++first, next = next->mNext)
+		for (auto* next = &mImpl.mHead; first != last; ++first, next = next->mNext)
 		{
 			next->mNext = createNode(*first);
 		}
@@ -458,7 +454,7 @@ private:
 
 	void constructNCopy(size_type n, const value_type& value)
 	{
-		for (FListNodeBase* next = &this->mImpl.mHead; n; --n)
+		for (auto* next = &mImpl.mHead; n; --n)
 		{
 			next->mNext = createNode(value);
 		}
@@ -466,7 +462,7 @@ private:
 
 	void defaultConstructN(size_type n)
 	{
-		for (FListNodeBase* next = &this->mImpl.mHead; n; --n)
+		for (auto* next = &mImpl.mHead; n; --n)
 		{
 			next->mNext = createNode();
 		}
@@ -488,8 +484,10 @@ public:
 
 	template <typename InputIt, typename = RequireInputIter<InputIt>>
 	FList(InputIt first, InputIt last, const Alloc& alloc = Alloc())
+		: Base(Node_Alloc_Type(alloc))
 	{
 		rangeConstruct(first, last);
+
 	}
 
 	FList(const FList& other)
@@ -515,7 +513,7 @@ private:
 	FList(FList&& other, const Node_Alloc_Type&& alloc, STD false_type)
 		: Base(STD move(other), Node_Alloc_Type(STD move(alloc)))
 	{
-		
+		insert_after(cbefore_begin(), makeMoveIfNoexceptIterator(other.begin()), makeMoveIfNoexceptIterator(other.end()));
 	}
 
 public:
@@ -554,11 +552,37 @@ public:
 		return *this;
 	}
 
+private:
+
+	void moveAndAssign(FList&& other) noexcept
+	{
+		clear();
+		mImpl.mHead.mNext = other.mImpl.mHead.mNext;
+		other.mImpl.mHead.mNext = nullptr;
+		Node_Alloc_Traits::doMove(this->getNodeAllocator(), other.getNodeAllocator());
+	}
+
+public:
+
 	FList& operator=(FList&& other) noexcept(Node_Alloc_Traits::nothrow_move())
 	{
 		if (this != STD addressof(other))
 		{
-
+			if constexpr (Node_Alloc_Traits::nothrow_move())
+			{
+				moveAndAssign(STD move(other));
+			}
+			else
+			{
+				if (this->getNodeAllocator() == other.getNodeAllocator())
+				{
+					moveAndAssign(STD move(other));
+				}
+				else
+				{
+					assign(STD make_move_iterator(other.begin()), STD make_move_iterator(other.end()));
+				}
+			}
 		}
 
 		return *this;
@@ -574,7 +598,22 @@ private:
 
 	void doAssign(size_type count, const value_type& value, STD true_type)
 	{
+		auto prev = before_begin();
+		auto start = begin();
+		auto endi = end();
+		for (; start != endi && count; --count, ++start, ++prev)
+		{
+			*start = value;
+		}
 
+		if (count)
+		{
+			insert_after(start, count, value);
+		}
+		else if (start != endi)
+		{
+			erase_after(prev, endi);
+		}
 	}
 
 	void doAssign(size_type count, const value_type& value, STD false_type)
@@ -586,13 +625,29 @@ private:
 	template <typename InputIt, typename = RequireInputIter<InputIt>>
 	void doAssign(InputIt first, InputIt last, STD true_type)
 	{
+		auto prev = before_begin();
+		auto start = begin();
+		auto endi = end();
+		for (; first != last && start != endi; ++first, ++start, ++prev)
+		{
+			*start = *first;
+		}
 
+		if (first != last)
+		{
+			insert_after(prev, first, last);
+		}
+		else if (start != endi)
+		{
+			erase_after(prev, endi);
+		}
 	}
 
 	template <typename InputIt, typename = RequireInputIter<InputIt>>
 	void doAssign(InputIt first, InputIt last, STD false_type)
 	{
-
+		clear();
+		insert_after(cbefore_begin(), first, last);
 	}
 
 public:
@@ -675,7 +730,7 @@ public:
 
 	NODISCARD bool empty() const noexcept
 	{
-		return mImpl.mHead.mNext;
+		return !mImpl.mHead.mNext;
 	}
 
 	NODISCARD size_type max_size() const noexcept
@@ -765,20 +820,13 @@ public:
 	template <typename... Args>
 	iterator emplace_after(const_iterator pos, Args&&... args)
 	{
-		return static_cast<Node*>(insertAfter(pos, STD forward<Args>(args)...).mNode).getValRef();
+		return static_cast<Node*>(insertAfterN(pos, STD forward<Args>(args)...).mNode).getValRef();
 	}
-
-private:
-
-
-
-
-public:
 
 	iterator erase_after(const_iterator pos)
 	{
 		auto* const cur = pos.constCastPtr();
-		auto* const toErase = pos.constCastPtr()->mNext;
+		auto* const toErase = cur->mNext;
 		cur->mNext = toErase->mNext;
 		this->destroyNode(toErase);
 		return iterator(cur->mNext);
@@ -799,35 +847,79 @@ public:
 		return iterator(lastPtr);
 	}
 
-	void push_front(const T& value)
+	void push_front(const value_type& value)
 	{
-
+		insertAfter(cbefore_begin(), value);
 	}
 
-	void push_front(T&& value)
+	void push_front(value_type&& value)
 	{
-
+		insertAfter(cbefore_begin(), STD move(value));
 	}
 
 	template <typename... Args>
 	reference emplace_front(Args&&... args)
 	{
-		return static_cast<Node*>(insertAfter(before_begin(), STD forward<Args>(args)...).mNode).getValRef();
+		return static_cast<Node*>(insertAfterN(before_begin(), STD forward<Args>(args)...).mNode)->getValRef();
 	}
 
 	void pop_front() noexcept
 	{
-
+		erase_after(before_begin());
 	}
+
+private:
+
+	template <typename... Args>
+	void insertAfterN(const_iterator pos, size_type n, Args&&... args)
+	{
+		auto backUp = pos;
+		TRY_START
+		for (; n; --n)
+		{
+			pos = emplace_after(pos, STD forward<Args>(args)...);
+		}
+		CATCH_ALL
+		erase_after(backUp, ++pos);
+		END_CATCH
+	}
+
+public:
 
 	void resize(size_type count)
 	{
-		
+		size_type length = 0;
+		auto start = before_begin();
+		const auto last = end();
+
+		for (; start.getNextNodeIter() != last && length < count; ++start, ++length) { }
+
+		if (length == count)
+		{
+			erase_after(start, last);
+			return;
+		}
+
+		// If length < count.
+		insertAfterN(start, count - length);
 	}
 
 	void resize(size_type count, const value_type& value)
 	{
+		size_type length = 0;
+		auto start = before_begin();
+		const auto last = end();
 
+		for (; start.getNextNodeIter() != last && length < count; ++start, ++length) {}
+
+		if (length == count)
+		{
+			erase_after(start, last);
+			return;
+		}
+
+		// If length < count.
+		insertAfterN(start, count - length, value);
 	}
 
 	void swap(FList& other) noexcept(Node_Alloc_Traits::always_equal_v())
@@ -838,28 +930,44 @@ public:
 
 	void merge(FList& other)
 	{
-
+		merge(STD move(other));
 	}
 
 	void merge(FList&& other)
 	{
-
+		merge(STD move(other), STD less<value_type>{});
 	}
 
 	template <typename Compare>
 	void merge(FList& other, Compare comp)
 	{
-
+		merge(STD move(other), comp);
 	}
 
 	template <typename Compare>
 	void merge(FList&& other, Compare comp)
 	{
+		if (this == STD addressof(other))
+		{
+			return;
+		}
 
+		auto* finalWillBeTail = &mImpl.mHead;
+		for (; finalWillBeTail->mNext && other.mImpl.mHead.mNext; finalWillBeTail = finalWillBeTail->mNext)
+		{
+			// default will be other < this.
+			if (!comp(static_cast<Node*>(finalWillBeTail->mNext)->getValRef(),
+					static_cast<Node*>(other.mImpl.mHead.mNext)->getValRef()))
+			{
+				finalWillBeTail->linkFistPlusOneToLastAfterThis(&other.mImpl.mHead, other.mImpl.mHead.mNext);
+			}
+		}
+
+		if (!other.empty())
+		{
+			finalWillBeTail->linkFistPlusOneToLastAfterThis(&other.mImpl.mHead, nullptr);
+		}
 	}
-
-
-public:
 
 	void splice_after(const_iterator pos, FList& other) noexcept
 	{
@@ -881,9 +989,18 @@ public:
 		splice_after(pos, STD move(other), it);
 	}
 
-	void splice_after(const_iterator pos, FList&& other, const_iterator it) noexcept
+	void splice_after(const_iterator pos, FList&&, const_iterator it) noexcept
 	{
-		
+		auto before = it;
+		++it;
+
+		if (pos == before || pos == it)
+		{
+			return;
+		}
+
+		auto* const temp = pos.constCastPtr();
+		temp->linkFistPlusOneToLastAfterThis(before.constCastPtr(), it.constCastPtr());
 	}
 
 	void splice_after(const_iterator pos, FList& other, const_iterator first, const_iterator last) noexcept
@@ -891,9 +1008,9 @@ public:
 		splice_after(pos, STD move(other), first, last);
 	}
 
-	void splice_after(const_iterator pos, FList&& other, const_iterator first, const_iterator last) noexcept
+	void splice_after(const_iterator pos, FList&&, const_iterator first, const_iterator last) noexcept
 	{
-
+		spliceAfterPost(pos, first, last);
 	}
 
 	size_type remove(const value_type& value)
@@ -907,17 +1024,16 @@ public:
 		size_type removed = 0;
 		FList toDestroy(get_allocator());
 		iterator prevIt = before_begin();
-		while (Node* temp = static_cast<Node*>(prevIt.mNode->mNext))
+		while (auto* temp = static_cast<Node*>(prevIt.mNode->mNext))
 		{
 			if (p(temp->getValRef()))
 			{
 				toDestroy.splice_after(toDestroy.cbefore_begin(), *this, prevIt);
 				++removed;
+				continue;
 			}
-			else
-			{
-				++prevIt;
-			}
+
+			++prevIt;
 		}
 
 		return removed;
@@ -936,15 +1052,143 @@ public:
 	template <typename BinaryPredicate>
 	size_type unique(BinaryPredicate p)
 	{
+		if (empty())
+		{
+			return 0;
+		}
 
+		size_type removed = 0;
+		FList toDestroy(get_allocator());
+		auto first = begin();
+		auto last = end();
+
+		for (auto next = first; ++next != last; next = first)
+		{
+
+			if (p(*first, *next))
+			{
+				toDestroy.splice_after(toDestroy.cbefore_begin(), *this, first);
+				++removed;
+			}
+			else
+			{
+				first = next;
+			}
+		}
+
+		return removed;
 	}
 
 private:
 
+	/*
+	 * Copy from GCC 11.
+	 */
 	template <typename Compare>
 	void gccSort(Compare& comp)
 	{
+		// If `next' is nullptr, return immediately.
+		Node* list = static_cast<Node*>(this->mImpl.mHead.mNext);
+		if (!list)
+		{
+			return;
+		}
 
+		unsigned long inSize = 1;
+
+		while (true)
+		{
+			Node* p = list;
+			list = nullptr;
+			Node* tail = nullptr;
+
+			// Count number of merges we do in this pass.
+			unsigned long nMerges = 0;
+
+			while (p)
+			{
+				++nMerges;
+				// There exists a merge to be done.
+				// Step `insize' places along from p.
+				Node* q = p;
+				unsigned long psize = 0;
+				for (unsigned long i = 0; i < inSize; ++i)
+				{
+					++psize;
+					q = static_cast<Node*>(q->mNext);
+					if (!q)
+					{
+						break;
+					}
+				}
+
+				// If q hasn't fallen off end, we have two lists to merge.
+				unsigned long qSize = inSize;
+
+				// Now we have two lists; merge them.
+				while (psize > 0 || (qSize > 0 && q))
+				{
+					// Decide whether next node of merge comes from p or q.
+					Node* e;
+					if (psize == 0)
+					{
+						// p is empty; e must come from q.
+						e = q;
+						q = static_cast<Node*>(q->mNext);
+						--qSize;
+					}
+					else if (qSize == 0 || !q)
+					{
+						// q is empty; e must come from p.
+						e = p;
+						p = static_cast<Node*>(p->mNext);
+						--psize;
+					}
+					else if (!comp(q->getValRef(), p->getValRef()))
+					{
+						// First node of q is not lower; e must come from p.
+						e = p;
+						p = static_cast<Node*>(p->mNext);
+						--psize;
+					}
+					else
+					{
+						// First node of q is lower; e must come from q.
+						e = q;
+						q = static_cast<Node*>(q->mNext);
+						--qSize;
+					}
+
+					// Add the next node to the merged list.
+					if (tail)
+					{
+						tail->mNext = e;
+					}
+					else
+					{
+						list = e;
+					}
+
+					tail = e;
+				}
+
+				// Now p has stepped `insize' places along, and q has too.
+				p = q;
+			}
+
+			tail->mNext = nullptr;
+
+			// If we have done only one merge, we're finished.
+			// Allow for nmerges == 0, the empty list case.
+			if (nMerges <= 1)
+			{
+				this->mImpl.mHead.mNext = list;
+				return;
+			}
+
+			// Otherwise repeat, merging lists twice the size.
+			inSize *= 2;
+		}
 	}
 
 public:

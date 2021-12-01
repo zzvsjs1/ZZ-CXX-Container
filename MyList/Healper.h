@@ -149,6 +149,24 @@ doAllocMove(Alloc& left, Alloc& right)
 	}
 }
 
+template <typename T>
+struct MoveIfNoexceptCondition
+	: public STD conjunction<STD negation<STD is_nothrow_constructible<T>>, STD is_copy_constructible<T>>::type
+{ };
+
+template <typename T>
+inline constexpr bool MoveIfNoexceptCondition_v = MoveIfNoexceptCondition<T>::value;
+
+template <typename Iterator, typename ReturnT
+	= STD conditional_t<
+	MoveIfNoexceptCondition_v<
+	typename STD iterator_traits<Iterator>::value_type>, Iterator, STD move_iterator<Iterator>>
+>
+inline constexpr ReturnT makeMoveIfNoexceptIterator(Iterator itr)
+{
+	return ReturnT(itr);
+}
+
 
 template <typename Alloc, typename = typename Alloc::value_type>
 struct MyAlloctTraits : public STD allocator_traits<Alloc> 
@@ -280,7 +298,7 @@ struct AllocatedPtrGuard
 
 	value_type* get()
 	{
-		fancyPointerToAddress(m_ptr);
+		return fancyPointerToAddress(m_ptr);
 	}
 
 	template <typename Alloc2>
@@ -297,13 +315,13 @@ private:
 };
 
 // Tag type for value-initializing first, constructing second from remaining args.
-struct Zero_Then_Variadic_Args_T {
-	explicit Zero_Then_Variadic_Args_T() = default;
+struct ZeroThenVariadicArgsT {
+	explicit ZeroThenVariadicArgsT() = default;
 }; 
 
 // Tag type for constructing first from one arg, constructing second from remaining args.
-struct One_Then_Variadic_Args_T {
-	explicit One_Then_Variadic_Args_T() = default;
+struct OneThenVariadicArgsT {
+	explicit OneThenVariadicArgsT() = default;
 }; 
 
 // Store a pair of values, deriving from empty first.
@@ -317,7 +335,7 @@ public:
 	using Base = T1; // for visualization
 
 	template <typename... Other2>
-	constexpr explicit CompressedPair(Zero_Then_Variadic_Args_T, Other2&&... value2) 
+	constexpr explicit CompressedPair(ZeroThenVariadicArgsT, Other2&&... value2) 
 		noexcept(
 		STD conjunction_v<STD is_nothrow_default_constructible<T1>, STD is_nothrow_constructible<T2, Other2...>>
 			)
@@ -325,7 +343,7 @@ public:
 	{ }
 
 	template <typename Other1, typename... Other2>
-	constexpr CompressedPair(One_Then_Variadic_Args_T, Other1&& value1, Other2&&... value2) 
+	constexpr CompressedPair(OneThenVariadicArgsT, Other1&& value1, Other2&&... value2) 
 		noexcept(
 		STD conjunction_v<STD is_nothrow_constructible<T1, Other1>, STD is_nothrow_constructible<T2, Other2...>>
 		)
@@ -354,7 +372,7 @@ public:
 	T2 value2;
 
 	template <typename... Other2>
-	constexpr explicit CompressedPair(Zero_Then_Variadic_Args_T, Other2&&... otherValues) 
+	constexpr explicit CompressedPair(ZeroThenVariadicArgsT, Other2&&... otherValues) 
 		noexcept(
 			STD conjunction_v<STD is_nothrow_default_constructible<T1>, STD is_nothrow_constructible<T2, Other2...>>
 			)
@@ -362,7 +380,7 @@ public:
 	{ }
 
 	template <typename Other1, typename... Other2>
-	constexpr CompressedPair(One_Then_Variadic_Args_T, Other1&& otherValue1, Other2&&... otherValues2) 
+	constexpr CompressedPair(OneThenVariadicArgsT, Other1&& otherValue1, Other2&&... otherValues2) 
 		noexcept(
 			STD conjunction_v<STD is_nothrow_constructible<T1, Other1>, STD is_nothrow_constructible<T2, Other2...>>
 			)

@@ -34,7 +34,7 @@ private:
 	Compare comp;
 
 	template <typename Alloc>
-	using EnableIfUsesAllocator = typename STD enable_if_t<STD uses_allocator_v<Container, Alloc>>;
+	using EnableIfUsesAllocator = STD enable_if_t<STD uses_allocator_v<Container, Alloc>>;
 
 public:
 

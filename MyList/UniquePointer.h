@@ -80,20 +80,20 @@ public:
 		" or an lvalue reference type");
 
 	UniqPtrDataImpl() 
-		: mPair(Zero_Then_Variadic_Args_T{})
+		: mPair(ZeroThenVariadicArgsT{})
 	{ }
 
 	UniqPtrDataImpl(pointer p)
-		: mPair(Zero_Then_Variadic_Args_T{}, p)
+		: mPair(ZeroThenVariadicArgsT{}, p)
 	{ }
 
 	template <typename Del>
 	UniqPtrDataImpl(pointer p, Del&& d)
-		: mPair(One_Then_Variadic_Args_T{}, STD move(d), p)
+		: mPair(OneThenVariadicArgsT{}, STD move(d), p)
 	{ }
 
 	UniqPtrDataImpl(UniqPtrDataImpl&& other) noexcept
-		: mPair(One_Then_Variadic_Args_T{}, STD forward<D>(other.getDeleter()), STD move(other.release()))
+		: mPair(OneThenVariadicArgsT{}, STD forward<D>(other.getDeleter()), STD move(other.release()))
 	{ }
 
 	UniqPtrDataImpl& operator=(UniqPtrDataImpl&& other) noexcept
@@ -289,7 +289,7 @@ public:
 
 	UniquePtr& operator=(const UniquePtr&) = delete;
 
-	typename STD add_lvalue_reference_t<element_type> operator*() const
+	STD add_lvalue_reference_t<element_type> operator*() const
 	{
 		return *get();
 	}

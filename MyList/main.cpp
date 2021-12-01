@@ -111,13 +111,26 @@ std::ostream& operator<<(std::ostream& ostr, const FList<T, Alloc>& list)
 	return ostr;
 }
 
+template <typename T, typename Alloc>
+std::ostream& operator<<(std::ostream& ostr, const forward_list<T, Alloc>& list)
+{
+	for (const auto& i : list)
+	{
+		ostr << i << " ";
+	}
+
+	ostr << endl;
+
+	return ostr;
+}
+
 struct MyStruct
 {
 
 	MyStruct(int i)
 		: d(i) { }
 
-	~MyStruct() noexcept
+	~MyStruct()
 	{
 		cout << "Good Bye ";
 	}
@@ -127,9 +140,7 @@ struct MyStruct
 
 int main()
 {
-	FList<string> d = { "cool", "wa" , "sdfsdfsd", "dfghfghfghfghg"};
-	d.erase_after(++d.before_begin(), d.end());
-	cout << d;
+	
 
 
 	return 0;

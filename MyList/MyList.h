@@ -6,7 +6,6 @@
 #include <cstdlib>
 #include <cassert>
 #include <memory>
-#include <cassert>
 #include <iterator>
 #include <type_traits>
 #include <initializer_list>
@@ -1035,7 +1034,7 @@ public:
 
 	iterator erase(const_iterator first, const_iterator last) noexcept
 	{
-		for (; first != last; first = erase(first)) {}
+		for (; first != last; first = erase(first)) { }
 		return last.constCast();
 	}
 
@@ -1513,13 +1512,12 @@ public:
 	{
 		return STD list(cbegin(), cend());
 	}
-
 };
 
 template <typename T, typename Alloc>
 inline bool operator==(const MyList<T, Alloc>& lhs, const MyList<T, Alloc>& rhs)
 {
-	if (rhs.size() != rhs.size())
+	if (lhs.size() != rhs.size())
 	{
 		return false;
 	}
