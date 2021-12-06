@@ -140,8 +140,9 @@ struct MyStruct
 
 int main()
 {
-	
+	FList<string> s = { "j" };
 
+	cout << s.front();
 
 	return 0;
 }

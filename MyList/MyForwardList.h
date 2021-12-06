@@ -487,7 +487,6 @@ public:
 		: Base(Node_Alloc_Type(alloc))
 	{
 		rangeConstruct(first, last);
-
 	}
 
 	FList(const FList& other)
@@ -812,7 +811,7 @@ public:
 		return spliceAfterPost(pos, temp.before_begin(), temp.end());
 	}
 
-	iterator insert_after(const_iterator pos, STD initializer_list<T> ilist)
+	iterator insert_after(const_iterator pos, STD initializer_list<value_type> ilist)
 	{
 		return insert_after(pos, ilist.begin(), ilist.end());
 	}
@@ -820,7 +819,7 @@ public:
 	template <typename... Args>
 	iterator emplace_after(const_iterator pos, Args&&... args)
 	{
-		return static_cast<Node*>(insertAfterN(pos, STD forward<Args>(args)...).mNode).getValRef();
+		return insertAfter(pos, STD forward<Args>(args)...);
 	}
 
 	iterator erase_after(const_iterator pos)
@@ -860,12 +859,12 @@ public:
 	template <typename... Args>
 	reference emplace_front(Args&&... args)
 	{
-		return static_cast<Node*>(insertAfterN(before_begin(), STD forward<Args>(args)...).mNode)->getValRef();
+		return insertAfter(cbefore_begin(), STD forward<Args>(args)...);
 	}
 
 	void pop_front() noexcept
 	{
-		erase_after(before_begin());
+		erase_after(cbefore_begin());
 	}
 
 private:

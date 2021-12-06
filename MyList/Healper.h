@@ -168,6 +168,11 @@ inline constexpr ReturnT makeMoveIfNoexceptIterator(Iterator itr)
 }
 
 
+[[noreturn]] void throwLengthError(const char* str)
+{
+	throw STD runtime_error("cannot create jstd::vector larger than max_size()");
+}
+
 template <typename Alloc, typename = typename Alloc::value_type>
 struct MyAlloctTraits : public STD allocator_traits<Alloc> 
 {

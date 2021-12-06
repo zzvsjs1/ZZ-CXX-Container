@@ -31,14 +31,14 @@ public:
 
 	AllocatorBase() = default;
 
-	AllocatorBase(AllocatorBase& other) noexcept {}
+	AllocatorBase(AllocatorBase&) noexcept { }
 
 	template <typename T2>
-	AllocatorBase(const AllocatorBase<T2>& other) noexcept {}
+	AllocatorBase(const AllocatorBase<T2>&) noexcept { }
 
 	~AllocatorBase() = default;
 
-	T* allocate(size_type size, const void* = static_cast<const void*>(0))
+	T* allocate(size_type size)
 	{
 		if (size == 0)
 		{
@@ -65,7 +65,7 @@ public:
 
 	size_type max_size() const noexcept
 	{
-		return STD numeric_limits<size_type>::max() / static_cast<size_type>(sizeof(T));
+		return STD numeric_limits<size_type>::max() /sizeof(T);
 	}
 
 	template <typename ArrayType, typename... Args>
