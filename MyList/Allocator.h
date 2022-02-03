@@ -68,10 +68,10 @@ public:
 		return STD numeric_limits<size_type>::max() /sizeof(T);
 	}
 
-	template <typename ArrayType, typename... Args>
-	void construct(ArrayType* p, Args&&... args) noexcept(STD is_nothrow_constructible_v<ArrayType, Args...>)
+	template <typename Type, typename... Args>
+	void construct(Type* p, Args&&... args) noexcept(STD is_nothrow_constructible_v<Type, Args...>)
 	{
-		::new(reinterpret_cast<void*>(p)) ArrayType(STD forward<Args>(args)...);
+		::new(reinterpret_cast<void*>(p)) Type(STD forward<Args>(args)...);
 	}
 
 	template <typename ArrayType>

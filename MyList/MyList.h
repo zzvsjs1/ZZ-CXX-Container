@@ -1090,7 +1090,7 @@ private:
 		size_type i = 0;
 		TRY_START	
 		const size_type currentSize = size();
-		for (; i < count - currentSize; i++)
+		for (; i < count - currentSize; ++i)
 		{
 			emplace_back(value);
 		}
@@ -1169,29 +1169,29 @@ public:
 
 private:
 
-		static void insertedFirstLastBeforePos(iterator pos, iterator first, iterator last) noexcept
+	static void insertedFirstLastBeforePos(iterator pos, iterator first, iterator last) noexcept
+	{
+		if (first == last)
 		{
-			if (first == last)
-			{
-				return;
-			}
-
-			// Inserting [first, last) before pos.
-			ListNodeBase* const position = pos.mNode;
-			ListNodeBase* const start = first.mNode;
-			ListNodeBase* const end = last.mNode;
-
-			// Remove
-			start->mPrev->mNext = end;
-			end->mPrev->mNext = position;
-			position->mPrev->mNext = start;
-
-			// Link
-			ListNodeBase* const posPrev = position->mPrev;
-			position->mPrev = end->mPrev;
-			end->mPrev = start->mPrev;
-			start->mPrev = posPrev;
+			return;
 		}
+
+		// Inserting [first, last) before pos.
+		ListNodeBase* const position = pos.mNode;
+		ListNodeBase* const start = first.mNode;
+		ListNodeBase* const end = last.mNode;
+
+		// Remove
+		start->mPrev->mNext = end;
+		end->mPrev->mNext = position;
+		position->mPrev->mNext = start;
+
+		// Link
+		ListNodeBase* const posPrev = position->mPrev;
+		position->mPrev = end->mPrev;
+		end->mPrev = start->mPrev;
+		start->mPrev = posPrev;
+	}
 
 public:
 
@@ -1210,12 +1210,12 @@ public:
 	*/
 	void merge(MyList& other)
 	{
-		merge(STD move(other), STD less<>{});
+		merge(STD move(other), STD less<value_type>{});
 	}
 
 	void merge(MyList&& other)
 	{
-		merge(STD move(other), STD less<>{});
+		merge(STD move(other), STD less<value_type>{});
 	}
 
 	template <typename Compare>
@@ -1390,7 +1390,7 @@ public:
 
 	size_type unique()
 	{
-		return unique(STD equal_to<>{});
+		return unique(STD equal_to<value_type>{});
 	}
 
 	template <typename BinaryPredicate>
@@ -1462,7 +1462,7 @@ public:
 
 	void sort()
 	{
-		sort(STD less<>{});
+		sort(STD less<value_type>{});
 	}
 
 	template <typename Compare>
@@ -1477,8 +1477,8 @@ public:
 		doGccSort(comp);
 	}
 
-	template <typename Comsumer>
-	MyList filter(Comsumer consumer)
+	template <typename Consumer>
+	MyList filter(Consumer consumer)
 	{
 		MyList temp(get_allocator());
 		for (auto& data : *this)
@@ -1492,8 +1492,8 @@ public:
 		return temp;
 	}
 
-	template <typename Comsumer>
-	Comsumer foreach(Comsumer consumer)
+	template <typename Consumer>
+	Consumer foreach(Consumer consumer)
 	{
 		return STD for_each(begin(), end(), consumer);
 	}

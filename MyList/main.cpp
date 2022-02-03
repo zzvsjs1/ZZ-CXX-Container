@@ -19,6 +19,7 @@
 #include "Memory.h"
 #include "PritorityQueue.h"
 #include "MyForwardList.h"
+#include "Vector.h"
 
 using std::cin;
 using std::cout;
@@ -140,9 +141,11 @@ struct MyStruct
 
 int main()
 {
-	FList<string> s = { "j" };
+	using jstd::Vector;
 
-	cout << s.front();
+	Vector<string> a(10, "Hello world");
+
+
 
 	return 0;
 }

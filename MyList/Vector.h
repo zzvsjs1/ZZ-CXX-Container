@@ -24,18 +24,18 @@ public:
 	using T_Alloc_Type = typename MyAlloctTraits<Alloc>:: template rebind<T>::other;
 	using pointer = typename MyAlloctTraits<T_Alloc_Type>::pointer;
 
-	class VectorData
+	class VectorImplData
 	{
 	public:
 		pointer mStart;
 		pointer mLast;
 		pointer mEnd;
 
-		VectorData() noexcept
+		VectorImplData() JLIBCXX_NOEXCEPT
 			: mStart(), mLast(), mEnd()
 		{ }
 
-		VectorData(VectorData&& other) noexcept
+		VectorImplData(VectorImplData&& other) JLIBCXX_NOEXCEPT
 			: mStart(other.mStart), mLast(other.mLast), mEnd(other.mEnd)
 		{
 			other.mStart = pointer();
@@ -43,44 +43,44 @@ public:
 			other.mEnd = pointer();
 		}
 
-		void copyData(const VectorData& other) noexcept
+		void copyData(const VectorImplData& other) JLIBCXX_NOEXCEPT
 		{
 			mStart = other.mStart;
 			mLast = other.mLast;
 			mEnd = other.mEnd;
 		}
 
-		void swapData(VectorData& other) noexcept
+		void swapData(VectorImplData& other) JLIBCXX_NOEXCEPT
 		{
-			VectorData temp;
+			VectorImplData temp;
 			temp.copyData(*this);
 			copyData(other);
 			other.copyData(temp);
 		}
 	};
 
-	class VectorImpl : public T_Alloc_Type, public VectorData
+	class VectorImpl : public T_Alloc_Type, public VectorImplData
 	{
 	public:
 
-		VectorImpl() noexcept(STD is_nothrow_default_constructible_v<T_Alloc_Type>)
+		VectorImpl() JLIBCXX_NOEXCEPT_IF(STD is_nothrow_default_constructible_v<T_Alloc_Type>)
 			: T_Alloc_Type()
 		{ }
 
-		VectorImpl(const T_Alloc_Type& other) noexcept
+		VectorImpl(const T_Alloc_Type& other) JLIBCXX_NOEXCEPT
 			: T_Alloc_Type(other)
 		{ }
 
-		VectorImpl(VectorImpl&& other) noexcept
-			: T_Alloc_Type(STD move(other)), VectorData(STD move(other))
+		VectorImpl(VectorImpl&& other) JLIBCXX_NOEXCEPT
+			: T_Alloc_Type(STD move(other)), VectorImplData(STD move(other))
 		{ }
 
-		VectorImpl(T_Alloc_Type&& other) noexcept
+		VectorImpl(T_Alloc_Type&& other) JLIBCXX_NOEXCEPT
 			: T_Alloc_Type(STD move(other))
 		{ }
 
-		VectorImpl(T_Alloc_Type&& a, VectorImpl&& b) noexcept
-			: T_Alloc_Type(STD move(a)), VectorData(STD move(b))
+		VectorImpl(T_Alloc_Type&& a, VectorImpl&& b) JLIBCXX_NOEXCEPT
+			: T_Alloc_Type(STD move(a)), VectorImplData(STD move(b))
 		{ }
 	};
 
@@ -88,40 +88,40 @@ public:
 
 	using allocator_type = Alloc;
 
-	T_Alloc_Type& getTAllocator() noexcept
+	T_Alloc_Type& getTAllocator() JLIBCXX_NOEXCEPT
 	{
 		return mImpl;
 	}
 
-	const T_Alloc_Type& getTAllocator() const noexcept
+	NODISCARD const T_Alloc_Type& getTAllocator() const JLIBCXX_NOEXCEPT
 	{
 		return mImpl;
 	}
 
-	allocator_type get_allocator() const noexcept
+	NODISCARD allocator_type get_allocator() const JLIBCXX_NOEXCEPT
 	{
 		return allocator_type(getTAllocator());
 	}
 
 	VectorBase() = default;
 
-	VectorBase(const allocator_type& alloc) noexcept
+	VectorBase(const allocator_type& alloc) JLIBCXX_NOEXCEPT
 		: mImpl(alloc)
 	{ }
 
-	VectorBase(STD size_t n)
+	VectorBase(const STD size_t n)
 		: mImpl()
 	{
 		createStorage(n);
 	}
 
-	VectorBase(STD size_t n, const allocator_type& alloc)
+	VectorBase(const STD size_t n, const allocator_type& alloc)
 		: mImpl(alloc)
 	{
 		createStorage(n);
 	}
 
-	VectorBase(T_Alloc_Type&& alloc) noexcept
+	VectorBase(T_Alloc_Type&& alloc) JLIBCXX_NOEXCEPT
 		: mImpl(STD move(alloc))
 	{ }
 
@@ -142,9 +142,10 @@ public:
 		: mImpl(T_Alloc_Type(alloc), STD move(other.mImpl))
 	{ }
 
-	~VectorBase() noexcept
+	~VectorBase() JLIBCXX_NOEXCEPT
 	{
-		deallocateArray(mImpl.mStart, mImpl.mLast - mImpl.mStart);
+		myDestroy(mImpl.mStart, mImpl.mLast, getTAllocator());
+		deallocateArray(mImpl.mStart, mImpl.mEnd - mImpl.mStart);
 	}
 
 	pointer allocateArray(STD size_t n)
@@ -152,11 +153,11 @@ public:
 		return  n != 0 ? MyAlloctTraits<T_Alloc_Type>::allocate(mImpl, n) : pointer();
 	}
 
-	void deallocateArray(pointer p, STD size_t n)
+	void deallocateArray(pointer ptr, STD size_t n)
 	{
-		if (p)
+		if (ptr)
 		{
-			MyAlloctTraits<T_Alloc_Type>::deallocate(mImpl, p, n);
+			MyAlloctTraits<T_Alloc_Type>::deallocate(mImpl, ptr, n);
 		}
 	}
 
@@ -177,8 +178,10 @@ class Vector : protected VectorBase<T, Alloc>
 private:
 
 	static_assert(STD is_same_v<STD remove_cv_t<T>, T>, "jstd::vector must have a non-const, non-volatile value_type");
+	static_assert(STD is_same_v<typename Alloc::value_type, T>, "jstd::vector must have the same value_type as its allocator");
+
 	using Base = VectorBase<T, Alloc>;
-	using T_Alloc_Type = Base::T_Alloc_Type;
+	using T_Alloc_Type = typename Base::T_Alloc_Type;
 	using Alloc_Traits = MyAlloctTraits<T_Alloc_Type>;
 
 public:
@@ -194,7 +197,7 @@ public:
 	using const_reverse_iterator = STD reverse_iterator<const_iterator>;
 	using size_type = typename Alloc_Traits::size_type;
 	using difference_type = typename Alloc_Traits::difference_type;
-	using allocate_type = Alloc;
+	using allocator_type = Alloc;
 
 private:
 
@@ -205,7 +208,12 @@ private:
 		return STD min(diffMax, allocMax);
 	}
 
-	static size_type checkLength(size_type n, const allocate_type& alloc)
+	[[noreturn]] static void throwLengthError(const char* str)
+	{
+		throw STD runtime_error("cannot create jstd::vector larger than max_size()");
+	}
+
+	static size_type checkLength(size_type n, const allocator_type& alloc)
 	{
 		if (n > maxSize(T_Alloc_Type(alloc)))
 		{
@@ -215,6 +223,25 @@ private:
 		return n;
 	}
 
+	template <typename... Args>
+	void initializeNValues(size_type n, Args... args)
+	{
+		auto first = this->mImpl.mStart;
+		auto alloc = this->getTAllocator();
+		using traits = MyAlloctTraits<decltype(alloc)>;
+
+		TRY_START
+		for (; n; --n, ++first)
+		{
+			traits::construct(alloc, STD addressof(*first), STD forward<Args>(args)...);
+		}
+
+		this->mImpl.mLast = first - 1;
+		CATCH_ALL
+		myDestroy(this->mImpl.mStart, first, alloc);
+		THROW_AGAIN
+		END_CATCH
+	}
 
 protected:
 
@@ -224,8 +251,38 @@ protected:
 	using Base::getTAllocator;
 
 public:
-
+	/**
+	 * \brief Create a Vector with no elements.
+	 */
 	Vector() = default;
+
+	explicit Vector(const allocator_type& alloc) JLIBCXX_NOEXCEPT
+		: Base(alloc)
+	{ }
+
+	explicit Vector(size_type n, const allocator_type& alloc = allocator_type())
+		: Base(checkLength(n, alloc), alloc)
+	{
+		initializeNValues(n);
+	}
+
+	Vector(size_type n, const value_type& value, const allocator_type& alloc = allocator_type())
+		: Base(checkLength(n, alloc), alloc)
+	{
+		initializeNValues(n, value);
+	}
+
+
+
+
+
+
+
+
+
+
+
+	~Vector() = default;
 
 };
 

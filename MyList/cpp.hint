@@ -4,3 +4,9 @@
 #define THROW_AGAIN
 #define STD
 #define TRY_START try {
+#define CATCH_ALL } catch(...) {
+#define END_CATCH }
+#define JLIBCXX_THROW(_EXC)
+#define JLIBCXX_USE_NOEXCEPT
+#define JLIBCXX_NOEXCEPT_IF(__VA_ARGS__) noexcept(__VA_ARGS__)
+#define JLIBCXX_NOEXCEPT

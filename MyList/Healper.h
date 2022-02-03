@@ -2,6 +2,7 @@
 #ifndef HELPER
 #define HELPER
 
+#include <algorithm>
 #include <type_traits>
 #include <memory>
 
@@ -167,12 +168,6 @@ inline constexpr ReturnT makeMoveIfNoexceptIterator(Iterator itr)
 	return ReturnT(itr);
 }
 
-
-[[noreturn]] void throwLengthError(const char* str)
-{
-	throw STD runtime_error("cannot create jstd::vector larger than max_size()");
-}
-
 template <typename Alloc, typename = typename Alloc::value_type>
 struct MyAlloctTraits : public STD allocator_traits<Alloc> 
 {
@@ -266,44 +261,44 @@ struct AllocatedPtrGuard
 	using value_type = typename STD allocator_traits<Alloc>::value_type;
 
 	AllocatedPtrGuard(Alloc& alloc, pointer ptr) noexcept
-		: m_alloc(STD addressof(alloc)), m_ptr(ptr)
+		: mAlloc(STD addressof(alloc)), mPtr(ptr)
 	{}
 
 	template <typename ArrayType, typename Req = require<STD is_same<ArrayType, value_type*>>>
 	AllocatedPtrGuard(Alloc& alloc, ArrayType ptr)
-		: m_alloc(STD addressof(alloc)), m_ptr(STD pointer_traits<pointer>::pointer_to(*ptr))
+		: mAlloc(STD addressof(alloc)), mPtr(STD pointer_traits<pointer>::pointer_to(*ptr))
 	{}
 
 	AllocatedPtrGuard(AllocatedPtrGuard&& other) noexcept
-		: m_alloc(other.m_alloc), m_ptr(other.m_ptr)
+		: mAlloc(other.mAlloc), mPtr(other.mPtr)
 	{
-		other.m_ptr = nullptr;
+		other.mPtr = nullptr;
 	}
 
 	~AllocatedPtrGuard()
 	{
-		if (m_ptr)
+		if (mPtr)
 		{
-			STD allocator_traits<Alloc>::deallocate(*m_alloc, m_ptr, 1);
+			STD allocator_traits<Alloc>::deallocate(*mAlloc, mPtr, 1);
 		}
 	}
 
 	pointer release()
 	{
-		pointer temp = m_ptr;
-		m_ptr = nullptr;
+		pointer temp = mPtr;
+		mPtr = nullptr;
 		return temp;
 	}
 
 	AllocatedPtrGuard& operator=(STD nullptr_t) noexcept
 	{
-		m_ptr = nullptr;
+		mPtr = nullptr;
 		return *this;
 	}
 
 	value_type* get()
 	{
-		return fancyPointerToAddress(m_ptr);
+		return fancyPointerToAddress(mPtr);
 	}
 
 	template <typename Alloc2>
@@ -314,8 +309,8 @@ struct AllocatedPtrGuard
 
 private:
 
-	Alloc* m_alloc;
-	pointer m_ptr;
+	Alloc* mAlloc;
+	pointer mPtr;
 
 };
 
@@ -402,6 +397,46 @@ public:
 		return value1;
 	}
 };
+
+template <typename T>
+constexpr inline void myDestroyInPlace(T& object) JLIBCXX_NOEXCEPT
+{
+	if constexpr (STD is_array_v<T>)
+	{
+		myDestroyRange(object, object + STD extent_v<T>);
+	}
+	else
+	{
+		object.~T();
+	}
+}
+
+template <typename NoThrowFwdIt>
+constexpr inline void myDestroyRange(NoThrowFwdIt first, const NoThrowFwdIt last) JLIBCXX_NOEXCEPT
+{
+	if constexpr (!STD is_trivially_destructible_v<STD iter_value_t<NoThrowFwdIt>>)
+	{
+		for (; first != last; ++first)
+		{
+			myDestroyInPlace(*first);
+		}
+	}
+}
+
+template <typename ForwardIterator, typename Allocator>
+void myDestroy(ForwardIterator first, ForwardIterator last, Allocator& alloc)
+{
+	for (; first != last; ++first)
+	{
+		STD allocator_traits<Allocator>::destroy(alloc, STD addressof(*first));
+	}
+}
+
+template <typename ForwardIterator, typename T>
+inline void myDestroy(ForwardIterator first, ForwardIterator last, STD allocator<T>&) JLIBCXX_NOEXCEPT
+{
+	myDestroyRange(first, last);
+}
 
 JSTD_END
 

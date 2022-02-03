@@ -2,6 +2,8 @@
 .vscode/
 x64/
 MyList/x64
+_ReSharper.Caches/
+MyList/x64/.vscode
 
 # Prerequisites
 *.d
