@@ -93,7 +93,7 @@ private:
 
 public:
 
-	void linkAnRnageBeforeThisNode(ListNodeBase* const first, ListNodeBase* const last) noexcept
+	void linkRangeBeforeThisNode(ListNodeBase* const first, ListNodeBase* const last) noexcept
 	{
 		if (first == last)
 		{
@@ -704,11 +704,11 @@ private:
 	* If all instances of the allocator type compare are equal.
 	* We just do the normal instantiate.
 	*
-	* This constructor does not throw an exception, because we just move the header node.
+	* This constructor does not throw an exception, because we just move the header.
 	*/
 	MyList(MyList&& other, const allocator_type& alloc, STD true_type) noexcept
 		: Base(Node_Alloc_Type(alloc), STD move(other))
-	{}
+	{ }
 
 	/*
 	* If all instances of the allocator type compare are not equal.
@@ -717,7 +717,7 @@ private:
 	* If this->getNodeAllocator() != other.getNodeAllocator(), we do the element-wise move.
 	* If both are equal, we do the normal instantiate.
 	*
-	* This constructor may throw an exception, because we do the element-wise move.
+	* This constructor may throw an exception, due to the element-wise move.
 	*/
 	MyList(MyList&& other, const allocator_type& alloc, STD false_type)
 	{
@@ -973,7 +973,7 @@ public:
 
 	iterator insert(const_iterator pos, const value_type& value)
 	{
-		insert(pos, 1, value);
+		return insert(pos, 1, value);
 	}
 
 	iterator insert(const_iterator pos, size_type count, const value_type& value)
@@ -1005,7 +1005,7 @@ public:
 
 	iterator insert(const_iterator pos, STD initializer_list<value_type> ilist)
 	{
-		insert(pos, ilist.begin(), ilist.end());
+		return insert(pos, ilist.begin(), ilist.end());
 	}
 
 	template <typename ... Args>
@@ -1136,11 +1136,12 @@ public:
 			erase(start, end());
 		}
 	}
-
+	
 	/*
 	* If std::allocator_traits<allocator_type>::propagate_on_container_swap::value is true,
 	* then the allocators are exchanged using an unqualified call to non-member swap.
-	* Otherwise, they are not swapped (and if get_allocator() != other.get_allocator(), the behavior is undefined).
+	* Otherwise, they are not swapped (and if get_allocator() != other.get_allocator(),
+	* the behavior is <strong>undefined</strong>).
 	*
 	* noexcept specification:
 	* noexcept(std::allocator_traits<Allocator>::is_always_equal::value)
@@ -1152,7 +1153,7 @@ public:
 			return;
 		}
 
-		// Not necessary.
+		// Not necessary. This is an undefined behaviour.
 		if (get_allocator() != other.get_allocator())
 		{
 			abort();
@@ -1200,7 +1201,8 @@ public:
 	* No elements are copied. The container other becomes empty after the operation.
 	* The function does nothing if other refers to the same object as *this. If get_allocator() != other.get_allocator(),
 	* the behavior is undefined. No iterators or references become invalidated,
-	* except that the iterators of moved elements now refer into *this, not into other. The default version uses operator < to compare the elements,
+	* except that the iterators of moved elements now refer into *this, not into other.
+	* The default version uses operator < to compare the elements,
 	* the second version uses the given comparison function comp.
 	* This operation is stable: for equivalent elements in the two lists,
 	* the elements from *this shall always precede the elements from other,
@@ -1333,7 +1335,7 @@ public:
 	{
 		if (first != last)
 		{
-			// Must get size before we modifly the lsit. Because the iterator will failure.
+			// Must get size before we modify the list. Because the iterator will failure.
 			const size_type numberOfRemove = STD distance(first, last);
 
 			insertedFirstLastBeforePos(pos.constCast(), first.constCast(), last.constCast());
@@ -1359,7 +1361,7 @@ public:
 
 	size_type remove(const value_type& value)
 	{
-		return remove_if([&](const value_type& other) { return other == value; });
+		return remove_if([&value](const value_type& other) { return other == value; });
 	}
 
 	template <typename UnaryPredicate>
@@ -1368,7 +1370,7 @@ public:
 		const size_type oldSize = size();
 		MyList needToBeDestroy(get_allocator());
 
-		// The iterator will invalied when we connect the node to needToBeDestroy. 
+		// The iterator will invalid when we connect the node to needToBeDestroy. 
 		// So we first copy and move the next iterator
 		// to next element, and then copy back to first.
 		for (auto first = begin(), last = end(), next = first; first != last; first = next)
@@ -1506,11 +1508,6 @@ public:
 	STD list<value_type, Alloc> to_std_list() const
 	{
 		return STD list(begin(), end());
-	}
-
-	const STD list<value_type, Alloc> to_std_clist() const
-	{
-		return STD list(cbegin(), cend());
 	}
 };
 

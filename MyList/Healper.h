@@ -5,6 +5,9 @@
 #include <algorithm>
 #include <type_traits>
 #include <memory>
+#include <string>
+#include <cstdio>
+#include <stdexcept>
 
 #include "Config.h"
 
@@ -397,46 +400,6 @@ public:
 		return value1;
 	}
 };
-
-template <typename T>
-constexpr inline void myDestroyInPlace(T& object) JLIBCXX_NOEXCEPT
-{
-	if constexpr (STD is_array_v<T>)
-	{
-		myDestroyRange(object, object + STD extent_v<T>);
-	}
-	else
-	{
-		object.~T();
-	}
-}
-
-template <typename NoThrowFwdIt>
-constexpr inline void myDestroyRange(NoThrowFwdIt first, const NoThrowFwdIt last) JLIBCXX_NOEXCEPT
-{
-	if constexpr (!STD is_trivially_destructible_v<STD iter_value_t<NoThrowFwdIt>>)
-	{
-		for (; first != last; ++first)
-		{
-			myDestroyInPlace(*first);
-		}
-	}
-}
-
-template <typename ForwardIterator, typename Allocator>
-void myDestroy(ForwardIterator first, ForwardIterator last, Allocator& alloc)
-{
-	for (; first != last; ++first)
-	{
-		STD allocator_traits<Allocator>::destroy(alloc, STD addressof(*first));
-	}
-}
-
-template <typename ForwardIterator, typename T>
-inline void myDestroy(ForwardIterator first, ForwardIterator last, STD allocator<T>&) JLIBCXX_NOEXCEPT
-{
-	myDestroyRange(first, last);
-}
 
 JSTD_END
 

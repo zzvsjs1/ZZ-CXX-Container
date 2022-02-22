@@ -11,7 +11,6 @@
 #include <vector>
 #include <chrono>
 #include <string>
-#include <fstream>
 
 #include "Array.h"
 #include "MyList.h"
@@ -20,6 +19,7 @@
 #include "PritorityQueue.h"
 #include "MyForwardList.h"
 #include "Vector.h"
+#include "Assert.h"
 
 using std::cin;
 using std::cout;
@@ -125,27 +125,29 @@ std::ostream& operator<<(std::ostream& ostr, const forward_list<T, Alloc>& list)
 	return ostr;
 }
 
-struct MyStruct
+template <typename T, typename Alloc>
+std::ostream& operator<<(std::ostream& ostr, const Vector<T, Alloc>& list)
 {
-
-	MyStruct(int i)
-		: d(i) { }
-
-	~MyStruct()
+	for (const auto& i : list)
 	{
-		cout << "Good Bye ";
+		ostr << i << " ";
 	}
 
-	int d;
-};
+	ostr << endl;
+
+	return ostr;
+}
 
 int main()
 {
 	using jstd::Vector;
+	
+	//Vector<string> a(10, "Hello world");
 
-	Vector<string> a(10, "Hello world");
 
+	
 
-
+	//cout << a;
+	
 	return 0;
 }

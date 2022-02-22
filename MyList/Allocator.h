@@ -5,8 +5,6 @@
 #include <type_traits>
 #include <limits>
 
-#include "Healper.h"
-
 JSTD_START
 
 template <typename T>
@@ -47,7 +45,7 @@ public:
 
 		if constexpr (alignof(T) > __STDCPP_DEFAULT_NEW_ALIGNMENT__)
 		{
-			return static_cast<T*>(::operator new(size * sizeof(T), STD align_val_t(alignof(T))));
+			return static_cast<T*>(::operator new(size * sizeof(T), static_cast<std::align_val_t>(alignof(T))));
 		}
 
 		return static_cast<T*>(::operator new(size * sizeof(T)));
@@ -57,13 +55,13 @@ public:
 	{
 		if constexpr (alignof(T) > __STDCPP_DEFAULT_NEW_ALIGNMENT__)
 		{
-			::operator delete(p, size * sizeof(T), STD align_val_t(alignof(T)));
+			::operator delete(p, size * sizeof(T), static_cast<std::align_val_t>(alignof(T)));
 		}
 
 		::operator delete(p, size * sizeof(T));
 	}
 
-	size_type max_size() const noexcept
+	NODISCARD size_type max_size() const noexcept
 	{
 		return STD numeric_limits<size_type>::max() /sizeof(T);
 	}
@@ -80,19 +78,19 @@ public:
 		p->~ArrayType();
 	}
 
-	pointer address(reference r) const noexcept
+	NODISCARD pointer address(reference r) const noexcept
 	{
 		return STD addressof(r);
 	}
 
-	const_pointer address(const_reference r) const noexcept
+	NODISCARD const_pointer address(const_reference r) const noexcept
 	{
 		return STD addressof(r);
 	}
 };
 
 template <typename T>
-class Alloc : public AllocatorBase<T>
+class MyAllocator : public AllocatorBase<T>
 {
 public:
 
@@ -113,27 +111,29 @@ public:
 	template <typename T2>
 	struct rebind
 	{
-		using other = Alloc<T2>;
+		using other = MyAllocator<T2>;
 	};
 
-	Alloc() = default;
+	MyAllocator() = default;
 
-	Alloc(const Alloc& other) noexcept
+	MyAllocator(const MyAllocator& other) noexcept
 		: AllocatorBase<T>(other) { }
 
-	Alloc& operator=(const Alloc& other) = default;
+	MyAllocator& operator=(const MyAllocator& other) = default;
 
 	template <typename T2>
-	Alloc(const Alloc<T2>& other) noexcept { }
+	MyAllocator(const MyAllocator<T2>& other) noexcept { }
 
-	~Alloc() = default;
+	MyAllocator(MyAllocator&&) = default;
 
-	friend bool operator==(const Alloc&, const Alloc&) noexcept
+	~MyAllocator() = default;
+
+	friend bool operator==(const MyAllocator&, const MyAllocator&) noexcept
 	{
 		return true;
 	}
 
-	friend bool operator!=(const Alloc&, const Alloc&) noexcept
+	friend bool operator!=(const MyAllocator&, const MyAllocator&) noexcept
 	{
 		return false;
 	}
@@ -141,14 +141,14 @@ public:
 
 template<typename T1, typename T2>
 inline bool
-operator==(const Alloc<T1>&, const Alloc<T2>&) noexcept
+operator==(const MyAllocator<T1>&, const MyAllocator<T2>&) noexcept
 {
 	return true;
 }
 
 template<typename T1, typename T2>
 inline bool
-operator!=(const Alloc<T1>&, const Alloc<T2>&) noexcept
+operator!=(const MyAllocator<T1>&, const MyAllocator<T2>&) noexcept
 {
 	return false;
 }

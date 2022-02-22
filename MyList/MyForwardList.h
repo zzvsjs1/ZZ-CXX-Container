@@ -512,7 +512,9 @@ private:
 	FList(FList&& other, const Node_Alloc_Type&& alloc, STD false_type)
 		: Base(STD move(other), Node_Alloc_Type(STD move(alloc)))
 	{
-		insert_after(cbefore_begin(), makeMoveIfNoexceptIterator(other.begin()), makeMoveIfNoexceptIterator(other.end()));
+		insert_after(cbefore_begin(), 
+			makeMoveIfNoexceptIterator(other.begin()), 
+			makeMoveIfNoexceptIterator(other.end()));
 	}
 
 public:
