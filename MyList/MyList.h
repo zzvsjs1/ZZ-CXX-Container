@@ -276,7 +276,7 @@ public:
 
 	explicit ListIterator(ListNodeBase* node) noexcept
 		: mNode(node)
-	{}
+	{ }
 
 	ListIterator constCast() const noexcept
 	{

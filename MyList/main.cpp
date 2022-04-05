@@ -140,6 +140,16 @@ std::ostream& operator<<(std::ostream& ostr, const Vector<T, Alloc>& list)
 
 int main()
 {
+
+	vector<const int* const*> a;
+
+	a.push_back(new int*);
+
+
+	//vector<const int*>::value_type
+
+
+
 	using jstd::Vector;
 	
 	//Vector<string> a(10, "Hello world");
