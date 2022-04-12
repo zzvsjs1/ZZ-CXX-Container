@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <list>
+#include <cassert>
 #include <memory>
 #include <string>
 #include <vector>
@@ -12,14 +13,7 @@
 #include <chrono>
 #include <string>
 
-#include "Array.h"
-#include "MyList.h"
-#include "Healper.h"
-#include "Memory.h"
-#include "PritorityQueue.h"
-#include "MyForwardList.h"
-#include "Vector.h"
-#include "Assert.h"
+#include "Tst.h"
 
 using std::cin;
 using std::cout;
@@ -33,131 +27,47 @@ using std::move;
 
 using namespace jstd;
 
-template <typename T, typename Alloc>
-std::ostream& operator<<(std::ostream& ostr, const MyList<T, Alloc>& list)
-{
-	for (const auto& i : list)
-	{
-		ostr << i << " ";
-	}
 
-	ostr << endl;
-
-	return ostr;
-}
-
-template <typename T, typename Alloc>
-std::ostream& operator<<(std::ostream& ostr, const list<T, Alloc>& list)
-{
-	for (const auto& i : list)
-	{
-		ostr << i << " ";
-	}
-
-	ostr << endl;
-
-	return ostr;
-}
-
-template <typename T, typename Alloc>
-std::ostream& operator<<(std::ostream& ostr, const vector<T, Alloc>& list)
-{
-	for (const auto& i : list)
-	{
-		ostr << i << " ";
-	}
-
-	ostr << endl;
-
-	return ostr;
-}
-
-template <typename t, typename container, typename compare>
-std::ostream& operator<<(std::ostream& ostr, PriorityQueue<t, container, compare>& pq)
-{
-	for (decltype(pq.size()) size = pq.size(), start = 0; start < size; ++start)
-	{
-		ostr << pq.top() << " ";
-		pq.pop();
-	}
-
-	ostr << endl;
-
-	return ostr;
-}
-
-template <typename T, STD size_t N>
-std::ostream& operator<<(std::ostream& ostr, Array<T, N> arr)
-{
-	for (const auto& d : arr)
-	{
-		ostr << d << " ";
-	}
-
-	ostr << endl;
-
-	return ostr;
-}
-
-template <typename T, typename Alloc>
-std::ostream& operator<<(std::ostream& ostr, const FList<T, Alloc>& list)
-{
-	for (const auto& i : list)
-	{
-		ostr << i << " ";
-	}
-
-	ostr << endl;
-
-	return ostr;
-}
-
-template <typename T, typename Alloc>
-std::ostream& operator<<(std::ostream& ostr, const forward_list<T, Alloc>& list)
-{
-	for (const auto& i : list)
-	{
-		ostr << i << " ";
-	}
-
-	ostr << endl;
-
-	return ostr;
-}
-
-template <typename T, typename Alloc>
-std::ostream& operator<<(std::ostream& ostr, const Vector<T, Alloc>& list)
-{
-	for (const auto& i : list)
-	{
-		ostr << i << " ";
-	}
-
-	ostr << endl;
-
-	return ostr;
-}
+//template <typename T, typename Alloc>
+//std::ostream& operator<<(std::ostream& ostr, const Vector<T, Alloc>& list)
+//{
+//	for (const auto& i : list)
+//	{
+//		ostr << i << " ";
+//	}
+//
+//	ostr << endl;
+//
+//	return ostr;
+//}
 
 int main()
 {
-
-	vector<const int* const*> a;
-
-	a.push_back(new int*);
+	cout << ::std::boolalpha;
+	vector<string> data = { "cute" };
 
 
-	//vector<const int*>::value_type
+	try
+	{
+		auto tst = TernarySearchTree(data.begin(), data.end());
+
+		tst.addWord("farm");
+		tst.addWord("sdfsdf");
+		tst.addWord("ssdfghdfhfdghdfghdf");
+		tst.addWord("kliuhsldighilshgskjlghkjsdghjl");
 
 
+		cout << tst.search("kliuhsldighilshgskjlghkjsdghjl");
+	}
+	catch (...) {}
 
-	using jstd::Vector;
-	
-	//Vector<string> a(10, "Hello world");
 
+	//auto a = tst.deleteWord("app");
+	//a = tst.deleteWord("cut");
+	//a = tst.deleteWord("farm");
+	//a = tst.deleteWord("cute");
+	//a = tst.deleteWord("cup");
 
-	
-
-	//cout << a;
 	
 	return 0;
 }

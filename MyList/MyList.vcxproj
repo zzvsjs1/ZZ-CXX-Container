@@ -169,6 +169,7 @@
     <ClInclude Include="Queue.h" />
     <ClInclude Include="SharePointer.h" />
     <ClInclude Include="String.h" />
+    <ClInclude Include="Tst.h" />
     <ClInclude Include="UniquePointer.h" />
     <ClInclude Include="Utility.h" />
     <ClInclude Include="Vector.h" />

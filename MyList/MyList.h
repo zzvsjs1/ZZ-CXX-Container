@@ -1478,37 +1478,6 @@ public:
 
 		doGccSort(comp);
 	}
-
-	template <typename Consumer>
-	MyList filter(Consumer consumer)
-	{
-		MyList temp(get_allocator());
-		for (auto& data : *this)
-		{
-			if (consumer(data))
-			{
-				temp.emplace_back(data);
-			}
-		}
-
-		return temp;
-	}
-
-	template <typename Consumer>
-	Consumer foreach(Consumer consumer)
-	{
-		return STD for_each(begin(), end(), consumer);
-	}
-
-	STD list<value_type, Alloc> to_std_list()
-	{
-		return STD list(begin(), end());
-	}
-
-	STD list<value_type, Alloc> to_std_list() const
-	{
-		return STD list(begin(), end());
-	}
 };
 
 template <typename T, typename Alloc>
