@@ -149,6 +149,7 @@
   <ItemGroup>
     <ClCompile Include="Assert.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="StrFormat.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Allocator.h" />
@@ -169,6 +170,7 @@
     <ClInclude Include="Queue.h" />
     <ClInclude Include="SharePointer.h" />
     <ClInclude Include="String.h" />
+    <ClInclude Include="Strings.h" />
     <ClInclude Include="Tst.h" />
     <ClInclude Include="UniquePointer.h" />
     <ClInclude Include="Utility.h" />

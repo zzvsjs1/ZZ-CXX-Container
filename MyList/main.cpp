@@ -8,12 +8,13 @@
 #include <vector>
 #include <type_traits>
 #include <forward_list>
-#include <set>
+
 #include <vector>
 #include <chrono>
 #include <string>
+#include "Strings.h"
+#include <limits>
 
-#include "Tst.h"
 
 using std::cin;
 using std::cout;
@@ -24,8 +25,6 @@ using std::vector;
 using std::list;
 using std::forward_list;
 using std::move;
-
-using namespace jstd;
 
 
 //template <typename T, typename Alloc>
@@ -44,30 +43,10 @@ using namespace jstd;
 int main()
 {
 	cout << ::std::boolalpha;
-	vector<string> data = { "cute" };
 
+	int i = 5;
 
-	try
-	{
-		auto tst = TernarySearchTree(data.begin(), data.end());
-
-		tst.addWord("farm");
-		tst.addWord("sdfsdf");
-		tst.addWord("ssdfghdfhfdghdfghdf");
-		tst.addWord("kliuhsldighilshgskjlghkjsdghjl");
-
-
-		cout << tst.search("kliuhsldighilshgskjlghkjsdghjl");
-	}
-	catch (...) {}
-
-
-	//auto a = tst.deleteWord("app");
-	//a = tst.deleteWord("cut");
-	//a = tst.deleteWord("farm");
-	//a = tst.deleteWord("cute");
-	//a = tst.deleteWord("cup");
-
+	cout << strFormat("%llb good\n", ::std::numeric_limits<long long>::max());
 	
 	return 0;
 }

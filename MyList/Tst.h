@@ -1,23 +1,20 @@
 #ifndef APT_A2_TST
 #define APT_A2_TST
 
-#include <type_traits>
 #include <cstddef>
 #include <cstring>
 #include <string>
-#include "Healper.h"
 
-
-class Node
+template <typename CharT, typename Traits = ::std::char_traits<CharT>>
+class TstNode final
 {
 private:
 
-	using Self = Node;
-	using CharT = char;
+	using Self = TstNode<CharT, Traits>;
 
 public:
 
-	explicit Node(const char& letter) noexcept
+	explicit TstNode(const char& letter) noexcept
 		: mLeft(),
 		mMid(),
 		mRight(),
@@ -26,7 +23,7 @@ public:
 		mEndWord(false)
 	{ }
 
-	Node(const char& letter, Self* const parent) noexcept
+	TstNode(const char& letter, Self* const parent) noexcept
 		: mLeft(),
 		mMid(),
 		mRight(),
@@ -35,67 +32,7 @@ public:
 		mEndWord(false)
 	{ }
 
-	Self*& left() noexcept
-	{
-		return mLeft;
-	}
-
-	Self* const& left() const noexcept
-	{
-		return mLeft;
-	}
-
-	Self*& right() noexcept
-	{
-		return mRight;
-	}
-
-	Self* const& right() const noexcept
-	{
-		return mRight;
-	}
-
-	Self*& mid() noexcept
-	{
-		return mMid;
-	}
-
-	Self* const& mid() const noexcept
-	{
-		return mMid;
-	}
-
-	Self*& parent() noexcept
-	{
-		return mParent;
-	}
-
-	Self* const& parent() const noexcept
-	{
-		return mParent;
-	}
-
-	CharT& letter() noexcept
-	{
-		return mLetter;
-	}
-
-	const CharT& letter() const noexcept
-	{
-		return mLetter;
-	}
-
-	bool& endWord() noexcept
-	{
-		return mEndWord;
-	}
-
-	const bool& endWord() const noexcept
-	{
-		return mEndWord;
-	}
-
-private:
+	~TstNode() noexcept = default;
 
 	Self* mLeft;
 
@@ -112,14 +49,15 @@ private:
 };
 
 
-class TernarySearchTree
+template <typename CharT, typename Traits = ::std::char_traits<CharT>>
+class TernarySearchTree final
 {
 private:
 
-	using CharT = char;
+	using Node = TstNode<CharT, Traits>;
 
 public:
-
+	
 	using node_type = Node;
 	using value_type = CharT;
 	using reference = CharT&;
@@ -128,12 +66,15 @@ public:
 	using const_pointer = const CharT*;
 	using size_type = ::std::size_t;
 	using difference_type = ::std::ptrdiff_t;
+	using string_type = ::std::basic_string<CharT, Traits>;
+	using traits = Traits;
+
 
 	TernarySearchTree() noexcept
 		: mRoot(), mSize()
 	{ }
 
-	template <typename InputIterator, typename = ::jstd::RequireInputIter<InputIterator>>
+	template <typename InputIterator>
 	TernarySearchTree(InputIterator first, InputIterator last)
 		: mRoot(), mSize()
 	{
@@ -148,12 +89,58 @@ public:
 		}
 	}
 
+	TernarySearchTree(TernarySearchTree&& other) noexcept
+		: mRoot(other.mRoot), mSize(other.mSize)
+	{
+		other.mRoot = nullptr;
+		other.mSize = 0;
+	}
+
 	~TernarySearchTree() noexcept
 	{
 		deleteSubTree(mRoot);
 	}
 
-	template <typename InputIterator, typename = ::jstd::RequireInputIter<InputIterator>>
+private:
+
+	static bool charEqual(const CharT& left, const CharT& right)
+	{
+		return traits::eq(left, right);
+	}
+
+	static bool charNonEqual(const CharT& left, const CharT& right)
+	{
+		return !charEqual(left, right);
+	}
+
+	static bool charLessThan(const CharT& left, const CharT& right)
+	{
+		return traits::lt(left, right);
+	}
+
+	static bool charLessThanEqualTo(const CharT& left, const CharT& right)
+	{
+		return !charLessThan(right, left);
+	}
+
+	static bool charGreaterThan(const CharT& left, const CharT& right)
+	{
+		/* 
+		 * NOLINT(readability-suspicious-call-argument).
+		 *
+		 * We need to reverse the argument in here.
+		 */
+		return charLessThan(right, left);
+	}
+
+	static bool charGreaterEqualTo(const CharT& left, const CharT& right)
+	{
+		return !charLessThan(left, right);
+	}
+
+public:
+
+	template <typename InputIterator>
 	void buildDictionary(InputIterator first, InputIterator last)
 	{
 		for (; first != last; ++first)
@@ -162,17 +149,15 @@ public:
 		}
 	}
 
-	bool search(const ::std::string& string) const noexcept
+	bool contain(const string_type& string) const noexcept
 	{
-		return search(string.c_str(), string.length());
+		return contain(string.c_str(), string.length());
 	}
 
-	bool search(const CharT* string) const noexcept
-	{
-		return search(string, ::std::strlen(string));
-	}
-
-	bool search(const CharT* string, const size_type length) const noexcept
+	bool contain(
+		const value_type* string, 
+		const size_type length
+	) const noexcept
 	{
 		Node* cur = mRoot;
 		bool end = false;
@@ -181,13 +166,13 @@ public:
 
 		while (cur && !end)
 		{
-			if (string[i] < cur->letter())
+			if (charLessThan(string[i], cur->mLetter))
 			{
-				cur = cur->left();
+				cur = cur->mLeft;
 			}
-			else if (string[i] > cur->letter())
+			else if (charGreaterThan(string[i], cur->mLetter))
 			{
-				cur = cur->right();
+				cur = cur->mRight;
 			}
 			else
 			{
@@ -197,7 +182,7 @@ public:
 				}
 				else
 				{
-					cur = cur->mid();
+					cur = cur->mMid;
 					++i;
 				}
 			}
@@ -205,13 +190,13 @@ public:
 
 		if (cur)
 		{
-			ret = cur->endWord();
+			ret = cur->mEndWord;
 		}
 
 		return ret;
 	}
 
-	bool addWord(const ::std::string& word)
+	bool addWord(const string_type& word)
 	{
 		return addWord(word.c_str(), word.length());
 	}
@@ -224,6 +209,7 @@ public:
 	bool addWord(const CharT* word, const size_type length)
 	{
 		bool ret = false;
+
 		if (length != 0)
 		{
 			if (empty())
@@ -240,25 +226,28 @@ public:
 				{
 					size_type i = 0;
 					bool done = false;
+
 					while (i < length && !done)
 					{
-						if (word[i] < cur->letter())
+						if (charLessThan(word[i], cur->mLetter))
 						{
-							if (!cur->left())
+							if (!cur->mLeft)
 							{
-								cur->left() = new Node(word[i], cur);
+								cur->mLeft = new Node(word[i], cur);
 							}
 
-							cur = cur->left();
+							cur = cur->mLeft;
 						}
-						else if (word[i] > cur->letter())
+						else if (
+							charGreaterThan(word[i], cur->mLetter)
+							)
 						{
-							if (!cur->right())
+							if (!cur->mRight)
 							{
-								cur->right() = new Node(word[i], cur);
+								cur->mRight = new TstNode(word[i], cur);
 							}
 
-							cur = cur->right();
+							cur = cur->mRight;
 						}
 						else
 						{
@@ -270,30 +259,32 @@ public:
 							}
 							else
 							{
-								if (!cur->mid())
+								if (!cur->mMid)
 								{
-									cur->mid() = new Node(word[i], cur);
+									// Throw.
+									cur->mMid = new TstNode(word[i], cur);
 								}
 
-								cur = cur->mid();
+								cur = cur->mMid;
 							}
 						}
 					}
 				}
 				catch (...)
 				{
+					// Failed to create a node, we will do clean up.
 					clearUpUpwards(cur);
 					throw;
 				}
 
 				// If end word, return false. Adding failed.
-				if (cur->endWord())
+				if (cur->mEndWord)
 				{
 					ret = false;
 				}
 				else
 				{
-					cur->endWord() = true;
+					cur->mEndWord = true;
 					++mSize;
 					ret = true;
 				}
@@ -313,7 +304,7 @@ public:
 		return mSize;
 	}
 
-	bool deleteWord(const ::std::string& word) noexcept
+	bool deleteWord(const string_type& word) noexcept
 	{
 		return deleteWord(word.c_str(), word.length());
 	}
@@ -335,13 +326,13 @@ public:
 
 			while (cur && !done)
 			{
-				if (word[i] < cur->letter())
+				if (charLessThan(word[i], cur->mLetter))
 				{
-					cur = cur->left();
+					cur = cur->mLeft;
 				}
-				else if (word[i] > cur->letter())
+				else if (charGreaterThan(word[i], cur->mLetter))
 				{
-					cur = cur->right();
+					cur = cur->mRight;
 				}
 				else
 				{
@@ -351,22 +342,23 @@ public:
 					}
 					else
 					{
-						cur = cur->mid();
+						cur = cur->mMid;
 						++i;
 					}
 				}
 			}
 
 			// No search all letter, cur is nullptr or cur is not end word. return false.
-			if (i != length - 1 || !cur || !cur->endWord())
+			if (i != length - 1 || !cur || !cur->mEndWord)
 			{
 				ret = false;
 			}
 			else
 			{
 				// Do delete.
-				cur->endWord() = false;
+				cur->mEndWord = false;
 				clearUpUpwards(cur);
+
 				--mSize;
 				ret = true;
 			}
@@ -379,10 +371,10 @@ private:
 
 	static Node* getSuccessorsFromRight(Node* node) noexcept
 	{
-		Node* ret = node->right();
-		while (ret->left())
+		Node* ret = node->mRight;
+		while (ret->mLeft)
 		{
-			ret = ret->left();
+			ret = ret->mLeft;
 		}
 
 		return ret;
@@ -394,37 +386,39 @@ private:
 
 		while (cur && !done)
 		{
-			if (cur->mid() || cur->endWord())
+			if (cur->mMid || cur->mEndWord)
 			{
 				done = true;
 			}
 			else
 			{
-				if (!cur->left())
+				if (!cur->mLeft)
 				{
-					transplantBToA(cur, cur->right());
+					transplantBToA(cur, cur->mRight);
 				}
-				else if (!cur->right())
+				else if (!cur->mRight)
 				{
-					transplantBToA(cur, cur->left());
+					transplantBToA(cur, cur->mLeft);
 				}
 				else
 				{
 					Node* successor = getSuccessorsFromRight(cur);
-					if (successor->parent() != cur)
+
+					if (successor->mParent != cur)
 					{
-						transplantBToA(successor, successor->right());
-						successor->right() = cur->right();
-						successor->right()->parent() = successor;
+						transplantBToA(successor, successor->mRight);
+						successor->mRight = cur->mRight;
+						successor->mRight->mParent = successor;
 					}
 
 					transplantBToA(cur, successor);
-					successor->left() = cur->left();
-					successor->left()->parent() = successor;
+					successor->mLeft = cur->mLeft;
+					successor->mLeft->mParent = successor;
 				}
 
 				const Node* const toDelete = cur;
-				cur = cur->parent();
+				cur = cur->mParent;
+
 				delete toDelete;
 			}
 		}
@@ -432,26 +426,26 @@ private:
 
 	void transplantBToA(Node* const a, Node* const b) noexcept
 	{
-		if (!a->parent())
+		if (!a->mParent)
 		{
 			mRoot = b;
 		}
-		else if (a == a->parent()->left())
+		else if (a == a->mParent->mLeft)
 		{
-			a->parent()->left() = b;
+			a->mParent->mLeft = b;
 		}
-		else if (a == a->parent()->right())
+		else if (a == a->mParent->mRight)
 		{
-			a->parent()->right() = b;
+			a->mParent->mRight = b;
 		}
 		else
 		{
-			a->parent()->mid() = b;
+			a->mParent->mMid = b;
 		}
 
 		if (b)
 		{
-			b->parent() = a->parent();
+			b->mParent = a->mParent;
 		}
 	}
 
@@ -461,37 +455,51 @@ private:
 		mRoot = new Node(word[0]);
 		Node* cur = mRoot;
 
-
-		for (size_type i = 1; i < length; ++i)
+		try
 		{
-			cur->mid() = new Node(word[i], cur);
-			cur = cur->mid();
+			for (size_type i = 1; i < length; ++i)
+			{
+				cur->mMid = new Node(word[i], cur);
+				cur = cur->mMid;
+			}
+		}
+		catch (...) 
+		{
+			/* 
+			 * If we failed to create a tree when
+			 * the tree is empty before.
+			 *
+			 * We will destroy all the nodes which
+			 * already created.
+			 */
+			deleteSubTree(mRoot);
+			throw;
 		}
 
-		cur->endWord() = true;
+		cur->mEndWord = true;
 	}
 
 	static void deleteSubTree(Node* root) noexcept
 	{
 		if (root)
 		{
-			if (root->left())
+			if (root->mLeft)
 			{
-				deleteSubTree(root->left());
-				root->left() = nullptr;
+				deleteSubTree(root->mLeft);
+				root->mLeft = nullptr;
 				
 			}
 
-			if (root->mid())
+			if (root->mMid)
 			{
-				deleteSubTree(root->mid());
-				root->mid() = nullptr;
+				deleteSubTree(root->mMid);
+				root->mMid = nullptr;
 			}
 
-			if (root->right())
+			if (root->mRight)
 			{
-				deleteSubTree(root->right());
-				root->right() = nullptr;
+				deleteSubTree(root->mRight);
+				root->mRight = nullptr;
 			}
 
 			delete root;
@@ -504,6 +512,6 @@ private:
 
 };
 
-
+using StringTst = TernarySearchTree<char>;
 
 #endif // !APT_A2_TST
