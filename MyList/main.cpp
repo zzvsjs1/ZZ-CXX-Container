@@ -46,7 +46,7 @@ int main()
 
 	int i = 5;
 
-	cout << strFormat("%llb good\n", ::std::numeric_limits<long long>::max());
+	cout << strFormat("%zu %%p good\n", static_cast<size_t>(50000000));
 	
 	return 0;
 }

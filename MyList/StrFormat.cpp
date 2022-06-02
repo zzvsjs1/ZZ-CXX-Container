@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cassert>
 #include <cstdarg>
 #include <stdexcept>
@@ -101,14 +102,14 @@ void writeUnSignedInteger(::std::string& ret, UnsignedIntT value, const unsigned
 {
 	static_assert(::std::is_unsigned_v<UnsignedIntT>, "Value must be unsigned.");
 
-	if (base > 32)
+	if (base < 2 || base > 32)
 	{
 		throw ::std::runtime_error("Only support 2 - 32 base integer.");
 	}
 
 	char buffer[256];
-	auto start = ::std::end(buffer);
-	auto end = start;
+	char* start = ::std::end(buffer);
+	char* end = start;
 
 	start = writeUnsignedToBuffer(
 		start,
@@ -130,14 +131,14 @@ void writeSignedInteger(::std::string& ret, SignedIntT value, const unsigned int
 {
 	static_assert(::std::is_signed_v<SignedIntT>, "Value must be signed.");
 
-	if (base > 32)
+	if (base < 2 || base > 32)
 	{
 		throw ::std::runtime_error("Only support 2 - 32 base integer.");
 	}
 
 	char buffer[256];
-	auto start = ::std::end(buffer);
-	auto end = start;
+	char* start = ::std::end(buffer);
+	char* end = start;
 
 	if (value < 0)
 	{
@@ -193,19 +194,103 @@ void doubleToStr(::std::string& ret, const double value)
 	
 }
 
+bool isSignedIntegerFlag(const char ch) noexcept
+{
+	constexpr ::std::string_view sv = "id";
+	return ::std::ranges::any_of(sv, [&ch](const char each) -> bool
+	{
+		return each == ch
+			|| ::toupper(static_cast<unsigned char>(each)) == ch;
+	});
+}
+
+bool isUnSignedIntegerFlag(const char ch) noexcept
+{
+	constexpr ::std::string_view sv = "oxub";
+	return ::std::ranges::any_of(sv, [&ch](const char each) -> bool
+		{
+			return each == ch
+				|| ::toupper(static_cast<unsigned char>(each)) == ch;
+		});
+}
+
 bool isIntegerFlag(const char ch) noexcept
 {
-	constexpr ::std::string_view sv = "idoxb";
+	return isSignedIntegerFlag(ch) || isUnSignedIntegerFlag(ch);
+}
 
-	for (const char each : sv)
+void unsignedConvert(const ArgsParser& argsParser, ::std::string& ret, va_list& vargs, const unsigned int base)
+{
+	switch (argsParser.type)
 	{
-		if (each == ch || ::toupper(static_cast<unsigned char>(each)) == ch)
+		case BuildInType::CHAR:
 		{
-			return true;
+			writeUnSignedInteger(ret, va_arg(vargs, unsigned char), base);
+			break;
+		}
+	case BuildInType::SHORT:
+		{
+			writeUnSignedInteger(ret, va_arg(vargs, unsigned short), base);
+			break;
+		}
+	case BuildInType::LONG:
+		{
+			writeUnSignedInteger(ret, va_arg(vargs, unsigned long), base);
+			break;
+		}
+	case BuildInType::LONG_LONG:
+		{
+			writeUnSignedInteger(ret, va_arg(vargs, unsigned long long), base);
+			break;
+		}
+	case BuildInType::SIZE_T:
+		{
+			writeUnSignedInteger(ret, va_arg(vargs, size_t), base);
+			break;
+		}
+	default:
+		{
+			writeUnSignedInteger(ret, va_arg(vargs, unsigned int), base);
+			break;
 		}
 	}
+}
 
-	return false;
+void signedConvert(const ArgsParser& argsParser, ::std::string& ret, va_list& vargs, const unsigned int base)
+{
+	switch (argsParser.type)
+	{
+	case BuildInType::CHAR:
+		{
+			writeSignedInteger(ret, va_arg(vargs, char), base);
+			break;
+		}
+	case BuildInType::SHORT:
+		{
+			writeSignedInteger(ret, va_arg(vargs, short), base);
+			break;
+		}
+	case BuildInType::LONG:
+		{
+			writeSignedInteger(ret, va_arg(vargs, long), base);
+			break;
+		}
+	case BuildInType::LONG_LONG:
+		{
+			writeSignedInteger(ret, va_arg(vargs, long long), base);
+			break;
+		}
+	case BuildInType::SIZE_T:
+		{
+			writeSignedInteger(ret, va_arg(vargs, ::std::make_signed_t<size_t>), base);
+			break;
+		}
+	default:
+		{
+			writeSignedInteger(ret, va_arg(vargs, int), base);
+			break;
+		}
+	}
 }
 
 const char* formatByToken(::std::string& ret, const char* const formatter, va_list& vargs)
@@ -216,7 +301,7 @@ const char* formatByToken(::std::string& ret, const char* const formatter, va_li
 	// long or long long
 	if (*argsParser.f == 'l')
 	{
-		if (isIntegerFlag(argsParser.f[1]))
+		if (isSignedIntegerFlag(argsParser.f[1]))
 		{
 			argsParser.type = BuildInType::LONG;
 			++argsParser.f;
@@ -249,70 +334,6 @@ const char* formatByToken(::std::string& ret, const char* const formatter, va_li
 		++argsParser.f;
 	}
 
-	const auto signConvert = [&argsParser, &ret, &vargs](const unsigned int base)
-	{
-		switch (argsParser.type)
-		{
-		case BuildInType::SHORT:
-			{
-				writeSignedInteger(ret, va_arg(vargs, short), base);
-				break;
-			}
-		case BuildInType::LONG:
-			{
-				writeSignedInteger(ret, va_arg(vargs, long), base);
-				break;
-			}
-		case BuildInType::LONG_LONG:
-			{
-				writeSignedInteger(ret, va_arg(vargs, long long), base);
-				break;
-			}
-		case BuildInType::SIZE_T:
-			{
-				writeSignedInteger(ret, va_arg(vargs, ::std::make_signed_t<size_t>), base);
-				break;
-			}
-		default:
-			{
-				writeSignedInteger(ret, va_arg(vargs, int), base);
-				break;
-			}
-		}
-	};
-
-	const auto unsignedConvert = [&argsParser, &ret, &vargs](const unsigned int base)
-	{
-		switch (argsParser.type)
-		{
-		case BuildInType::SHORT:
-			{
-				writeUnSignedInteger(ret, va_arg(vargs, unsigned short), base);
-				break;
-			}
-		case BuildInType::LONG:
-			{
-				writeUnSignedInteger(ret, va_arg(vargs, unsigned long), base);
-				break;
-			}
-		case BuildInType::LONG_LONG:
-			{
-				writeUnSignedInteger(ret, va_arg(vargs, unsigned long long), base);
-				break;
-			}
-		case BuildInType::SIZE_T:
-			{
-				writeUnSignedInteger(ret, va_arg(vargs, size_t), base);
-				break;
-			}
-		default:
-			{
-				writeUnSignedInteger(ret, va_arg(vargs, unsigned int), base);
-				break;
-			}
-		}
-	};
-
 	switch (*argsParser.f)
 	{
 	case '%':
@@ -323,30 +344,29 @@ const char* formatByToken(::std::string& ret, const char* const formatter, va_li
 	case 'i':
 	case 'd':
 		{
-			signConvert(10);
+			signedConvert(argsParser, ret, vargs, 10);
 			break;
 		}
 	case 'o':
 		{
-			signConvert(8);
+			unsignedConvert(argsParser, ret, vargs, 8);
 			break;
 		}
 	case 'x':
 	case 'X':
 		{
-			signConvert(16);
+			unsignedConvert(argsParser, ret, vargs, 16);
 			break;
 		}
 	case 'b':
 	case 'B':
 		{
-			// TODO: Support unsigned.
-			signConvert(2);
+			unsignedConvert(argsParser, ret, vargs, 2);
 			break;
 		}
 	case 'u':
 		{
-			unsignedConvert(10);
+			unsignedConvert(argsParser, ret, vargs, 10);
 			break;
 		}
 	case 'c':
